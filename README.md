@@ -1,4 +1,4 @@
-# Section1: 紹介
+# Section01: 紹介
 
 ## 03 講座の内容、Laravel の概要
 
@@ -277,3 +277,31 @@ return [
 - `$ composer require barryvdh/laravel-debugbar`を実行<br>
 
 ※ デバッグモードの切り替えは `server/.env`ファイルの`APP_DEBUG=true`の部分を`true` or `false`に変更する<br>
+
+# セクション 02: Laravel Breeze + Blade Component
+
+## 08 Laravel Breeze の紹介
+
+### 認証ライブラリ比較
+
+|              |                                Larvel / ui                                 |                               Laravel Breeze                               |                   Fortify                    |       Jetstream       |
+| :----------: | :------------------------------------------------------------------------: | :------------------------------------------------------------------------: | :------------------------------------------: | :-------------------: |
+|   Version    |                                   6.x〜                                    |                                   8.x〜                                    |                    8.x〜                     |         8.x〜         |
+| View（PHP）  |                                   Blade                                    |                                   Blade                                    |                      -                       |   Livewire + Blade    |
+|      JS      |                             Vue.js / React.js                              |                                 Alpine.js                                  |                      -                       |  inertia.js + Vue.js  |
+|     CSS      |                                 Bootstrap                                  |                                Tailwindcss                                 |                      -                       |      Tailwindcss      |
+| 追加ファイル |                           View/Controller/Route                            |                           View/Controller/Route                            |                      -                       | View/Controller/Route |
+|    機能 1    | ログイン、ユーザー登録、パスワードリセット、<br>メール検証、パスワード確認 | ログイン、ユーザー登録、パスワードリセット、<br>メール検証、パスワード確認 |                      -                       |
+|    機能 2    |                                     -                                      |                                     -                                      | 2 要素認証、<br>プロフィール管理、チーム管理 | API サポート(Sanctum) |
+
+### Laravel Breeze インストール
+
+- `例`<br>
+
+`$ composer require laravel/breeze "1.*" --dev`<br>
+
+`$ php artisan install:breeze`<br>
+
+`$ npm install && npm run dev`<br>
+
+マニュアル: スターターキット https://readouble.com/laravel/8.x/ja/starter-kits.html#laravel-breeze<br>
