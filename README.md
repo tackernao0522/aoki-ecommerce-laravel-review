@@ -11,3 +11,7 @@
 |     求人     |        求人情報の登録        |  求人情報を探す  |
 |     副業     |         スキルの登録         |     依頼する     |
 |   家電修理   | エアコンなどの修理内容を登録 |  探す・依頼する  |
+
+## 04 Laravel のインストール
+
+- 参考: https://readouble.com/laravel/8.x/ja/installation.html <br>
