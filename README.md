@@ -27,3 +27,7 @@ Mysql DB 作成<br>
 デバッグバー<br>
 
 - `$ php artisan migrate`を実行<br>
+
+## 06 Git/GitHub の設定
+
+- 既に設定済み(動画参照)<br>
