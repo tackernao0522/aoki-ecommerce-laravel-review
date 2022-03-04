@@ -15,3 +15,15 @@
 ## 04 Laravel のインストール
 
 - 参考: https://readouble.com/laravel/8.x/ja/installation.html <br>
+
+## 05 DB 設定、マイグレート
+
+### 初期設定
+
+Mysql DB 作成<br>
+タイムゾーン、言語設定 config/app.php<br>
+.env 設定(環境ファイル)<br>
+バリデーションの言語ファイル<br>
+デバッグバー<br>
+
+- `$ php artisan migrate`を実行<br>
