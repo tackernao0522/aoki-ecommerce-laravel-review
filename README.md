@@ -300,8 +300,30 @@ return [
 
 `$ composer require laravel/breeze "1.*" --dev`<br>
 
-`$ php artisan install:breeze`<br>
+`$ php artisan breeze:install`<br>
 
 `$ npm install && npm run dev`<br>
 
 マニュアル: スターターキット https://readouble.com/laravel/8.x/ja/starter-kits.html#laravel-breeze<br>
+
+## 09 Laravel Breeze のインストール
+
+### ハンズオン
+
+- `$ composer require laravel/breeze "1.*" --dev`を実行<br>
+
+* `$ php artisan breeze:install`を実行<br>
+
+- `$ npm install`を実行<br>
+
+* `$ npm run dev`を実行<br>
+
+### Laravel Breeze 追加ファイル(抜粋)
+
+app/Http/Controllers/Auth<br>
+app/Http/Controllers/Requests/Auth<br>
+app/View/Components<br>
+routes/web.php<br>
+routes/auth.php<br>
+resources/views/auth<br>
+resources/views/components<br>
