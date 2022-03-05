@@ -327,3 +327,34 @@ routes/web.php<br>
 routes/auth.php<br>
 resources/views/auth<br>
 resources/views/components<br>
+
+## 10 表示の流れ、ルーティング
+
+### ブラウザに表示されるまでの流れ
+
+`クライアント` -> `index.php` -> `ミドルウェア` -> `ルーティング` -> `コントローラ` -> `モデル(データベース)` -> `ビュー` -> クライアント<br>
+
+※ `クライアント`と`ミドルウェア`の間には`サービスコンテナ`やサービスプロパイダ` etc...
+
+MVC モデル: Model, View, Controller<br>
+
+### 認証機能、追加ファイル
+
+サービスプロバイダ<br>
+`config/app.php`内の`providers`, `aliases`に`Auth`と記載<br>
+
+ルーティング<br>
+`routes/web.php`<br>
+`routes/auth.php`<br>
+
+### ルートファイル
+
+```
+use Illuminate\Support\Facades\Route; // Routeを読み込む
+use App\Http\Controllers\Auth\RegisteredUserController; // コントローラを読み込む
+
+Route::get('/register', // Route::getかpost (url) [RegisteredUserController::class, 'create']) // []でコントローラ名、メソッド名->middleware('guest') // middleware guestだったら->name('register); // 名前付きルート
+```
+
+マニュアル： 認証 https://readouble.com/laravel/8.x/ja/authentication.html<br>
+->ルートの保護、リダイレクト、ガードの指定、ログイン回数制限<br>
