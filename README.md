@@ -358,3 +358,35 @@ Route::get('/register', // Route::getかpost (url) [RegisteredUserController::cl
 
 マニュアル： 認証 https://readouble.com/laravel/8.x/ja/authentication.html<br>
 ->ルートの保護、リダイレクト、ガードの指定、ログイン回数制限<br>
+
+## 11 ルート->コントローラ->ビュー
+
+### コントローラファイル群
+
+`app/Http/Controllers/Auth`<br>
+
+```
+authenticatedSession // 認証セッション
+confirmablePassword // パスワード確認
+emailVerificationNotification // メール検証通知
+emailVerificationPrompt // メール検証プロンプト
+newPassword // 新しいパスワード
+passwordResetLink // パスワードリセットリンク
+registeredUser // ユーザー登録
+verifyEmail // メール検証
+```
+
+### ビューファイル群
+
+`resources/views/auth`<br>
+
+```
+confirm-password // パスワード確認
+forgot-password // パスワード忘れ
+login // ログイン
+register // 新規登録
+reset-password // パスワードリセット
+verify-email // メール検証
+```
+
+blade ファイルは xxx.blade.php の形式で作成する<br>
