@@ -279,8 +279,79 @@ class ComponentTestController extends Controller
 コンポーネントテスト1
 ```
 
-* `resources/views/tests/component-test2.blade.php`を編集<br>
+- `resources/views/tests/component-test2.blade.php`を編集<br>
 
 ```html:component-test2.blade.php
 コンポーネントテスト2
+```
+
+## 17 \$slot(スロット)
+
+### Component のパターン
+
+1 つのコンポーネント（部品）を複数ページで使える<br>
+コンポーネント側を修正すると全て反映される<br>
+
+### Component の書き方
+
+`resources/views/components`ディレクトリ内に配置<br>
+
+`<x-コンポーネント名></x-コンポーネント名>`<br>
+
+フォルダで分けたい場合<br>
+
+`resources/views/components/tests`ディレクトリの場合<br>
+
+`<x-tests.コンポーネント名></x-tests.コンポーネント名>`<br>
+
+- `resources/views/components/tests`ディレクトリを作成<br>
+
+* `resources/views/components/tests/app.blade.php`ファイルを作成<br>
+
+```html:app.blade.php
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="csrf-token" content="{{ csrf_token() }}" />
+
+    <title>{{ config('app.name', 'Laravel') }}</title>
+
+    <!-- Fonts -->
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap"
+    />
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}" />
+
+    <!-- Scripts -->
+    <script src="{{ asset('js/app.js') }}" defer></script>
+  </head>
+  <body>
+    <div class="font-sans text-gray-900 antialiased">
+      {{ $slot }}
+    </div>
+  </body>
+</html>
+```
+
+- `resources/views/tests/component-test1.blade.php`を編集<br>
+
+```html:component-test1.blade.php
+<x-tests.app>
+  コンポーネントテスト1
+</x-tests.app>
+```
+
+`resources/views/components/tests/app.blade.php`の{{ $slot }}の中に入る<br>
+
+- `resources/views/tests/component-test2.blade.php`を編集<br>
+
+```html:component-test2.blade.php
+<x-tests.app>
+  コンポーネントテスト2
+</x-tests.app>
 ```
