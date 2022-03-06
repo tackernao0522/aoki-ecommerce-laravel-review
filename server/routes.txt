@@ -14,9 +14,11 @@
 |        |          |                                 |                       |                                                                         | Closure                                            |
 |        | GET|HEAD | api/user                        |                       | Closure                                                                 | api                                                |
 |        |          |                                 |                       |                                                                         | App\Http\Middleware\Authenticate:sanctum           |
-|        | POST     | confirm-password                |                       | App\Http\Controllers\Auth\ConfirmablePasswordController@store           | web                                                |
-|        |          |                                 |                       |                                                                         | App\Http\Middleware\Authenticate                   |
+|        | GET|HEAD | component-test1                 |                       | App\Http\Controllers\ComponentTestController@showComponent1             | web                                                |
+|        | GET|HEAD | component-test2                 |                       | App\Http\Controllers\ComponentTestController@showComponent2             | web                                                |
 |        | GET|HEAD | confirm-password                | password.confirm      | App\Http\Controllers\Auth\ConfirmablePasswordController@show            | web                                                |
+|        |          |                                 |                       |                                                                         | App\Http\Middleware\Authenticate                   |
+|        | POST     | confirm-password                |                       | App\Http\Controllers\Auth\ConfirmablePasswordController@store           | web                                                |
 |        |          |                                 |                       |                                                                         | App\Http\Middleware\Authenticate                   |
 |        | GET|HEAD | dashboard                       | dashboard             | Closure                                                                 | web                                                |
 |        |          |                                 |                       |                                                                         | App\Http\Middleware\Authenticate                   |

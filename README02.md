@@ -213,3 +213,74 @@ md:flex で md 以上で Flexbox 有効
 |    クラブベース    |     php artisan make:component xxx      |       ○        |             ○              |        ○         |
 |     インライン     | php artisan make:component xxx --inline |       ○        |                            |        ○         |
 | 匿名コンポーネント |            直接ファイル作成             |                |             ○              |        ○         |
+
+## 16 準備(ルート->コントローラ->ビュー)
+
+- `routes/web.php`を編集<br>
+
+```php:web.php
+<?php
+
+use App\Http\Controllers\ComponentTestController;
+use Illuminate\Support\Facades\Route;
+
+Route::get('/', function () {
+  return view('welcome');
+});
+
+Route::get('/dashboard', function () {
+  return view('dashboard');
+})
+  ->middleware(['auth'])
+  ->name('dashboard'); // 認証しているかどうか
+
+Route::get('/component-test1', [
+  ComponentTestController::class,
+  'showComponent1',
+]);
+Route::get('/component-test2', [
+  ComponentTestController::class,
+  'showComponent2',
+]);
+
+require __DIR__ . '/auth.php';
+```
+
+- `$ php artisan make:controller ComponentTestController`を実行<br>
+
+```php:ComponentTestController.php
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+
+class ComponentTestController extends Controller
+{
+  public function showComponent1()
+  {
+    return view('tests.component-test1');
+  }
+
+  public function showComponent2()
+  {
+    return view('tests.component-test2');
+  }
+}
+```
+
+- `resources/views/tests`ディレクトリを作成<br>
+
+- `redouces/views/tests/component-test1.blade.php` と `redouces/views/tests/component-test2.blade.php`ファイルを作成<br>
+
+* `resources/views/tests/component-test1.blade.php`を編集<br>
+
+```html:component-test1.blade.php
+コンポーネントテスト1
+```
+
+* `resources/views/tests/component-test2.blade.php`を編集<br>
+
+```html:component-test2.blade.php
+コンポーネントテスト2
+```
