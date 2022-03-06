@@ -193,3 +193,23 @@ bg-green-300 md:bg-blue-300 lg:bg-red-300
 md:flex で md 以上で Flexbox 有効
 ```
 
+## 15 Blade コンポーネントの紹介
+
+### 機能比較
+
+|                        |                     テンプレート継承                     |                                              コンポーネント                                              |
+| :--------------------: | :------------------------------------------------------: | :------------------------------------------------------------------------------------------------------: |
+|       バージョン       |                                                          |                                                  7.x〜                                                   |
+|          用途          | (共通)ヘッダー、サイドバー、フッター<br>(個別)コンテンツ |                      共通部分の表示<br>データや属性の受け渡し<br>スロット(差し込み)                      |
+|        メリット        |           PHP の require に似ている。シンプル            |                                        Controller と View の分離                                         |
+|        ファイル        |              resources/views/xxx.blade.php               | app/view/components/xxx.php<br>resources/views/components/xxx.blade.php<br>resources/views/xxx.blade.php |
+|      関連タグなど      |           @yield, @extend, @section, @include            |              x-コンポーネント名(ケバブケース)<br><x-alert type="error" :message="$message">              |
+| 関連機能<br>(スロット) |                                                          |                     スロット {{$slot}}<br><x-alert>コンポーネント内の文字</x-alert>                      |
+
+### Blade コンポーネント
+
+|                    |                生成方法                 | view/component | resources/views/components | resources/views/ |
+| :----------------: | :-------------------------------------: | :------------: | :------------------------: | :--------------: |
+|    クラブベース    |     php artisan make:component xxx      |       ○        |             ○              |        ○         |
+|     インライン     | php artisan make:component xxx --inline |       ○        |                            |        ○         |
+| 匿名コンポーネント |            直接ファイル作成             |                |             ○              |        ○         |
