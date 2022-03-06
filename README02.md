@@ -355,3 +355,89 @@ class ComponentTestController extends Controller
   コンポーネントテスト2
 </x-tests.app>
 ```
+
+## 18 x-slot（名前付きスロット）
+
+### Slot
+
+Component 側<br>
+
+```
+{{ $slot }}
+```
+
+-> {{}} マスタッシュ構文（口ひげ）<br>
+
+Blade 側<br>
+
+```
+<x-app>この文章が差し込まれる</x-app>
+```
+
+### 名前付き Slot
+
+Component 側<br>
+
+```
+{{ $header }}
+```
+
+Blade 側<br>
+```
+<x-slot name="header">この文章が差し込まれる</x-slot>
+```
+
++ `resources/views/components/tests/app.blade.php`を編集<br>
+
+```html:app.blade.php
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <title>{{ config('app.name', 'Laravel') }}</title>
+
+    <!-- Fonts -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+
+    <!-- Scripts -->
+    <script src="{{ asset('js/app.js') }}" defer></script>
+</head>
+
+<body>
+    <header>
+        {{ $header }}
+    </header>
+    <div class="font-sans text-gray-900 antialiased">
+        {{ $slot }}
+    </div>
+</body>
+
+</html>
+```
+
++ `resources/views/tests/component-test1.blade.php`を編集<br>
+
+```html:components-test1.blade.php
+<x-tests.app>
+  <x-slot name="header">
+    ヘッダー1
+  </x-slot>
+  コンポーネントテスト1
+</x-tests.app>
+```
+
++ `resources/views/tests/component-test1.blade.php`を編集<br>
+
+```html:component-test2.blade.php
+<x-tests.app>
+  <x-slot name="header">ヘッダー2</x-slot>
+  コンポーネントテスト2
+</x-tests.app>
+```
