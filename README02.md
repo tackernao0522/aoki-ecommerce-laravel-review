@@ -306,7 +306,7 @@ class ComponentTestController extends Controller
 
 - `resources/views/components/tests`ディレクトリを作成<br>
 
-* `resources/views/components/tests/app.blade.php`ファイルを作成<br>
+* `resources/views/layouts/tests/app.blade.php`ファイルを作成<br>
 
 ```html:app.blade.php
 <!DOCTYPE html>
@@ -383,46 +383,48 @@ Component 側<br>
 ```
 
 Blade 側<br>
+
 ```
 <x-slot name="header">この文章が差し込まれる</x-slot>
 ```
 
-+ `resources/views/components/tests/app.blade.php`を編集<br>
+- `resources/views/components/tests/app.blade.php`を編集<br>
 
 ```html:app.blade.php
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="csrf-token" content="{{ csrf_token() }}" />
 
     <title>{{ config('app.name', 'Laravel') }}</title>
 
     <!-- Fonts -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap">
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap"
+    />
 
     <!-- Styles -->
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}" />
 
     <!-- Scripts -->
     <script src="{{ asset('js/app.js') }}" defer></script>
-</head>
+  </head>
 
-<body>
+  <body>
     <header>
-        {{ $header }}
+      {{ $header }}
     </header>
     <div class="font-sans text-gray-900 antialiased">
-        {{ $slot }}
+      {{ $slot }}
     </div>
-</body>
-
+  </body>
 </html>
 ```
 
-+ `resources/views/tests/component-test1.blade.php`を編集<br>
+- `resources/views/tests/component-test1.blade.php`を編集<br>
 
 ```html:components-test1.blade.php
 <x-tests.app>
@@ -433,11 +435,34 @@ Blade 側<br>
 </x-tests.app>
 ```
 
-+ `resources/views/tests/component-test1.blade.php`を編集<br>
+- `resources/views/tests/component-test1.blade.php`を編集<br>
 
 ```html:component-test2.blade.php
 <x-tests.app>
   <x-slot name="header">ヘッダー2</x-slot>
   コンポーネントテスト2
 </x-tests.app>
+```
+
+## 18 データの受け渡し方法（属性)
+
+### Blade ファイルと Component
+
+|                              |              Blade ファイル               |                     Blade コンポーネント                      |
+| :--------------------------: | :---------------------------------------: | :-----------------------------------------------------------: |
+|            \$slot            |         <x-app>ここに文字</x-app>         |                          {{ $slot }}                          |
+|        名前付き slot         | <x-slot name="header">ここに文字</x-slot> |                         {{ $header }}                         |
+|         属性(props)          |       <x-card message="メッセージ">       |                        {{ $message }}                         |
+|             変数             |       <x-card :message="$message">        |                    コントローラなどに指定                     |
+| 初期値<br>@props<br>連想配列 |     設定しない場合初期値が表示される      |             @props(['message' => '初期値です。'])             |
+|  クラスの設定<br>属性ばっぐ  |          <div {{ $attributes }}>          | <div {{ $attributes->merge([ 'class' => 'text-sm']) }}></div> |
+
+- `resources/views/components/tests/card.blade.php`ファイルを作成<br>
+
+```html:card.blade.php
+<div class="border-2 shadow-md w-1/4 p-2">
+  <div>{{ $title }}</div>
+  <div>画像</div>
+  <div>{{ $content }}</div>
+</div>
 ```
