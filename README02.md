@@ -444,7 +444,7 @@ Blade 側<br>
 </x-tests.app>
 ```
 
-## 18 データの受け渡し方法（属性)
+## 19 データの受け渡し方法（属性)
 
 ### Blade ファイルと Component
 
@@ -477,5 +477,73 @@ Blade 側<br>
   コンポーネントテスト1
 
   <x-tests.card title="タイトル1" content="本文1" />
+</x-tests.app>
+```
+
+## 19 データの受け渡し方法（変数)
+
+### コントローラなどから変数を渡す
+
+コントローラ側<br>
+
+```
+$messegae = 'メッセージ';
+
+return view('ビューファイル', compact('message'));
+```
+
+Blade 側<br>
+
+```
+<x-card :message="$message" />
+```
+
+- `Controllers/ComponentTestController.php`を編集<br>
+
+```php:ComponentTestController.php
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+
+class ComponentTestController extends Controller
+{
+  public function showComponent1()
+  {
+    $message = 'メッセージ123';
+
+    return view('tests.component-test1', compact('message'));
+  }
+
+  public function showComponent2()
+  {
+    return view('tests.components-test2');
+  }
+}
+```
+
+- `resources/views/components/tests/card.blade.php`を編集<br>
+
+```html:card.blade.php
+<div class="border-2 shadow-md w-1/4 p-2">
+  <div>{{ $title }}</div>
+  <div>画像</div>
+  <div>{{ $content }}</div>
+  // 追記
+  <div>{{ $message }}</div>
+</div>
+```
+
+- `resources/views/tests/component-test1.blade.php`を編集<br>
+
+```html:component-test1.blade.php
+<x-tests.app>
+  <x-slot name="header">
+    ヘッダー1
+  </x-slot>
+  コンポーネントテスト1
+
+  <x-tests.card title="タイトル1" content="本文1" :message="$message" />
 </x-tests.app>
 ```
