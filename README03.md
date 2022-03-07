@@ -167,3 +167,140 @@ class ComponentTestController extends Controller
   }
 }
 ```
+
+## 24 クラスベースで属性・初期値を設定する
+
+### 匿名とクラスベースの比較表
+
+|                              |              Blade ファイル               | Blade コンポーネント(匿名)                                   |                                  クラスベース                                  |
+| :--------------------------: | :---------------------------------------: | :----------------------------------------------------------- | :----------------------------------------------------------------------------: |
+|            \$slot            |         <x-app>ここに文字</x-app>         | {{ $slot }}                                                  |                                      同左                                      |
+|        名前付き slot         | <x-slot name="header">ここに文字</x-slot> | {{ $header }}                                                |                                      同左                                      |
+|         属性(props)          |        <x-card title="タイトル" />        | {{ $title }}                                                 | public $title<br>public function __construct($title) { $this->title = $title } |
+|             変数             |       <x-card :message="$title" />        | コントローラなどに指定 $message<br>{{ $message }}            |                                クラス内に指定可                                |
+| 初期値<br>@props<br>連想配列 |   設定しない場合<br>初期値が表示される    | @props(['message' => '初期値です。'])                        |    public function \_\_construct($title="初期値") {$this->title = \$title}     |
+|  クラスの設定<br>属性バッグ  |            class="bg-red-300"             | <div {{ $attributes->merge([ 'class' => 'text-sm'])}}></div> |                                      同左                                      |
+
+- `resources/views/components/tests/test-class-base-component.blade.php`を編集<br>
+
+```html:test-class-base-component.blade.php
+<div>
+  クラスベースのコンポーネントです。
+  <div>{{ $classBaseMessage }}</div>
+  <!-- If you do not have a consistent goal in life, you can not live it in a consistent way. - Marcus Aurelius -->
+</div>
+```
+
+- `resources/views/tests/component-test2.blade.php`を編集<br>
+
+```html:component-test2.blade.php
+<x-tests.app>
+  <x-slot name="header">ヘッダー2</x-slot>
+  コンポーネントテスト2
+  <x-test-class-base classBaseMessage="メッセージです。" />
+</x-tests.app>
+```
+
+- `app/View/Components/TestClassBase.php`を編集<br>
+
+```php:TestClassBase.php
+<?php
+
+namespace App\View\Components;
+
+use Illuminate\View\Component;
+
+class TestClassBase extends Component
+{
+  // 追記
+  public $classBaseMessage;
+  /**
+   * Create a new component instance.
+   *
+   * @return void
+   */
+  // 編集
+  public function __construct($classBaseMessage)
+  {
+    $this->classBaseMessage = $classBaseMessage;
+  }
+
+  /**
+   * Get the view / contents that represent the component.
+   *
+   * @return \Illuminate\Contracts\View\View|\Closure|string
+   */
+  public function render()
+  {
+    return view('components.tests.test-class-base-component');
+  }
+}
+```
+
+- `$ php artisan view:clear`を実行してから localhost/component-test2 にアクセスしてみる<br>
+
+* `app/View/Components/TestClassBase.php`を編集<br>
+
+```php:TestClassBase.php
+<?php
+
+namespace App\View\Components;
+
+use Illuminate\View\Component;
+
+class TestClassBase extends Component
+{
+  public $classBaseMessage;
+  public $defaultMessage;
+  /**
+   * Create a new component instance.
+   *
+   * @return void
+   */
+  public function __construct(
+    $classBaseMessage,
+    // 追記
+    $defaultMessage = '初期値です。'
+  ) {
+    $this->classBaseMessage = $classBaseMessage;
+    // 追記
+    $this->defaultMessage = $defaultMessage;
+  }
+
+  /**
+   * Get the view / contents that represent the component.
+   *
+   * @return \Illuminate\Contracts\View\View|\Closure|string
+   */
+  public function render()
+  {
+    return view('components.tests.test-class-base-component');
+  }
+}
+```
+
+- `resources/views/components/tests/test-class-base-component.blade.php`を編集<br>
+
+```html:test-class-base-component.blade.php
+<div>
+  クラスベースのコンポーネントです。
+  <div>{{ $classBaseMessage }}</div>
+  <div>{{ $defaultMessage }}</div>
+  <!-- If you do not have a consistent goal in life, you can not live it in a consistent way. - Marcus Aurelius -->
+</div>
+```
+
+- `resources/views/tests/component-test2.blade.php`を編集<br>
+
+```html:component-test2.blade.php
+<x-tests.app>
+  <x-slot name="header">ヘッダー2</x-slot>
+  コンポーネントテスト2
+  <x-test-class-base classBaseMessage="メッセージです。" />
+  <div class="mb-4"></div>
+  <x-test-class-base
+    classBaseMessage="メッセージです。"
+    defaultMessage="初期値から変更しています。"
+  />
+</x-tests.app>
+```
