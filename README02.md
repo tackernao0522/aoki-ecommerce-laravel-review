@@ -306,7 +306,7 @@ class ComponentTestController extends Controller
 
 - `resources/views/components/tests`ディレクトリを作成<br>
 
-* `resources/views/layouts/tests/app.blade.php`ファイルを作成<br>
+* `resources/views/components/tests/app.blade.php`ファイルを作成<br>
 
 ```html:app.blade.php
 <!DOCTYPE html>
