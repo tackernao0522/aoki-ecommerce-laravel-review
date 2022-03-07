@@ -466,3 +466,16 @@ Blade 側<br>
   <div>{{ $content }}</div>
 </div>
 ```
+
+- `resources/views/tests/component-test1.blade.php`を編集<br>
+
+```html:component-test1.blade.php
+<x-tests.app>
+  <x-slot name="header">
+    ヘッダー1
+  </x-slot>
+  コンポーネントテスト1
+
+  <x-tests.card title="タイトル1" content="本文1" />
+</x-tests.app>
+```
