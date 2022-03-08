@@ -304,3 +304,33 @@ class TestClassBase extends Component
   />
 </x-tests.app>
 ```
+
+## 26 Alpine.js の紹介
+
+公式 GitHub<br>
+https://github.com/alpinejs/alpine <br>
+
+tailwind の JavaScript 版のようなもの(軽量)<br>
+
+タグ内に専用のディレクティブを設置できる。<br>
+
+```
+<div x-show="isOpen()"></div>
+```
+
+### Alpine.js と Vue.js
+
+|          Alipine.js          |     Vue.js      |                特徴                 |
+| :--------------------------: | :-------------: | :---------------------------------: |
+|            x-data            | data プロパティ | データの状態 オブジェクトでも書ける |
+|            x-init            | mounted()フック |          DOM 更新時に実行           |
+|            x-show            |     v-show      |            True なら表示            |
+| x-bind:属性="式", :属性="式" |     v-bind      |           属性の値を設定            |
+|   x-on:click="", @click=""   |      v-on       |   イベント時のメソッドなどを設定    |
+|           x-model            |     v-model     |     双方向データバインディング      |
+|        x-text, x-html        | v-text, v-html  |       テキスト表示、HTML 表示       |
+|            x-ref             |                 |     コンポーネントから DOM 取得     |
+|         x-if, x-for          |   v-if, v-for   |            if 文、for 文            |
+|         x-transition         |  v-transition   |           トランジション            |
+|           x-spread           |                 |   再利用できるオブジェクトに抽出    |
+|           x-cloak            |     v-cloak     |            チラつき防止             |
