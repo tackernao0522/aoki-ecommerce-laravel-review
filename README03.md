@@ -397,3 +397,140 @@ require なしで別ファイルのクラスを利用可能<br>
 
 サービスプロバイダも読み込まれる<br>
 `registerConfiguredProviders() {}`<br>
+
+## 28 サービスコンテナ その 1
+
+### サービスコンテナ
+
+```
+app()->bind()
+app()->singleton()
+
+app()->make()
+
+dd(app()); で中身を確認できる
+
+bindings: array:65
+->65のサービスが設定されている
+```
+
+- `$ php artisan make:controller LifeCycleTestController`を実行<br>
+
+- `routes/web.php`を編集<br>
+
+```php:web.php
+<?php
+
+use App\Http\Controllers\ComponentTestController;
+use App\Http\Controllers\LifeCycleTestController; // 追記
+use Illuminate\Support\Facades\Route;
+
+Route::get('/', function () {
+  return view('welcome');
+});
+
+Route::get('/dashboard', function () {
+  return view('dashboard');
+})
+  ->middleware(['auth'])
+  ->name('dashboard'); // 認証しているかどうか
+
+Route::get('/component-test1', [
+  ComponentTestController::class,
+  'showComponent1',
+]);
+Route::get('/component-test2', [
+  ComponentTestController::class,
+  'showComponent2',
+]);
+// 追記
+Route::get('/servicecontainertest', [
+  LifeCycleTestController::class,
+  'showServiceContainerTest',
+]);
+
+require __DIR__ . '/auth.php';
+```
+
+- `app/Http/Controllers/LifeCycleTestController.php`を編集<br>
+
+```php:LifeCycleTestController.php
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+
+class LifeCycleTestController extends Controller
+{
+  public function showServiceContainerTest()
+  {
+    dd(app());
+  }
+}
+```
+
+- http://localhost/servicecontainertest にアクセスしてみる<br>
+
+### サービスコンテナに登録する
+
+```
+app()->bind('lifeCycleTest', function() {
+  return 'ライフサイクルテスト';
+})
+引数（取り出すときの名前, 機能）
+
+Bindings:の数が65->66に増えている
+```
+
+- `app/Http/Controllers/LifeCycleTestController.php`を編集<br>
+
+```php:LifeCycleTestController.php
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+
+class LifeCycleTestController extends Controller
+{
+  public function showServiceContainerTest()
+  {
+    app()->bind('lifeCycleTest', function () {
+      return 'ライフサイクルテスト';
+    });
+
+    dd(app());
+  }
+}
+```
+
+- http://localhost/servicecontainertest にアクセスしてみる<br>
+
+bindings が 71 から 72 に増えていて`lifeCycleTest`が追加されている<br>
+
+- `app/Http/Controllers/LifeCycleTestController.php`を編集<br>
+
+```php:LifeCycleTestController.php
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+
+class LifeCycleTestController extends Controller
+{
+  public function showServiceContainerTest()
+  {
+    app()->bind('lifeCycleTest', function () {
+      return 'ライフサイクルテスト';
+    });
+
+    $test = app()->make('lifeCycleTest');
+
+    dd($test, app());
+  }
+}
+```
+
+- http://localhost/servicecontainertest にアクセスしてみる<br>
