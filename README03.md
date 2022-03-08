@@ -334,3 +334,66 @@ tailwind の JavaScript 版のようなもの(軽量)<br>
 |         x-transition         |  v-transition   |           トランジション            |
 |           x-spread           |                 |   再利用できるオブジェクトに抽出    |
 |           x-cloak            |     v-cloak     |            チラつき防止             |
+
+# Section03 ライフサイクル
+
+## 27 ライフサイクル その 1
+
+### マルチログインの応用例
+
+| サイトの種類 |          提供側(販売側)          |  利用側(購入側)  |
+| :----------: | :------------------------------: | :--------------: |
+|     物販     |            商品の登録            | 商品を探す・買う |
+|    不動産    |            物件の登録            |    物件を探す    |
+|     求人     |          求人情報の登録          |  求人情報を探す  |
+|     副業     |           スキルの登録           |     依頼する     |
+|   家電修理   | エアコンなどの<br>修理内容を登録 |  探す・依頼する  |
+
+### マルチログイン 関連ファイル
+
+model, controller, view, route<br>
+
+`providers/RouteService/Provider.php`<br>
+ログイン後の URL<br>
+
+`config/auth.php` Guard 設定<br>
+ログイン方法、どのテーブルを使うか<br>
+
+`middleware/Authenticate.php`<br>
+未認証時のリダイレクト処理<br>
+
+`middleware/RedirectIfAuthenticated.php`<br>
+ログイン済みユーザーのリダイレクト<br>
+
+### ブラウザに表示されるまでの流れ
+
+`クライアント` -> `index.php` -> `ミドルウェア` -> ルーティング -> コントローラ <-> `(モデル)(データベース)` -> ビュー -> `クライアント`<br>
+
+MVC モデル： Model, View, Controller<br>
+
+### 全体の流れ
+
+WEB サーバが`public/index.php`にリダイレクト<br>
+
+1. autoload 読み込み<br>
+2. Application インスタンス作成(サービスコンテナ)<br>
+3. HttpKernel インスタンス作成<br>
+4. Request インスタンス作成<br>
+5. HttpKernel がリクエストを処理して Response 取得<br>
+6. レスポンス送信<br>
+7. terminate()で後片付け<br>
+
+### 1. autoload
+
+require なしで別ファイルのクラスを利用可能<br>
+
+### 2. サービスコンテナ
+
+2. Application(サービスコンテナ)<br>
+   `Bootstrap/app.php`を読み込み<br>
+   `app.php`内<br>
+   `$app = new Illumiate\Foundation\Application`<br>
+   Application インスタンスが通称サービスコンテナ<br>
+
+サービスプロバイダも読み込まれる<br>
+`registerConfiguredProviders() {}`<br>
