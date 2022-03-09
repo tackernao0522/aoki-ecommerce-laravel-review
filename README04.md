@@ -144,3 +144,19 @@ class Message
   }
 }
 ```
+
+## 30 ライフサイクル その 2
+
+- 参考: https://readouble.com/laravel/8.x/ja/lifecycle.html <br>
+
+### 3. Kernel
+
+`例`<br>
+`Bootstrap/app.php`<br>
+singleton で Kernel をサービスコンテに登録
+
+`Public/index.php`<br>
+
+```
+$kernel = $app->make(Kernel::class);
+```
