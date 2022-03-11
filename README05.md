@@ -197,3 +197,96 @@ class CreateAdminsTable extends Migration
 ```
 
 - `$ php artisan migrate`を実行<br>
+
+## 34 マイグレーション(パスワードリセット)
+
+### 1. マイグレーション設定
+
+create_users_table の内容を<br>
+owner, admin にそれぞれコピーする<br>
+
+php artisan make:migration create_owner_password_resets --create=owner_password_resets<br>
+php artisan make:migration create_admin_password_resets --create=admin_password_resets<br>
+password_resets の内容をそれぞれコピーする<br>
+
+### ハンズオン
+
+- `$ php artisan make:migration create_owner_password_resets --create=owner_password_resets`を実行<br>
+
+- `$ php artisan make:migration create_admin_password_resets --create=admin_password_resets`を実行<br>
+
+* `database/migrations/create_owner_password_resets.php`を編集<br>
+
+```php:create_owner_password_resets.php
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+class CreateOwnerPasswordResets extends Migration
+{
+  /**
+   * Run the migrations.
+   *
+   * @return void
+   */
+  public function up()
+  {
+    Schema::create('owner_password_resets', function (Blueprint $table) {
+      $table->string('email')->index();
+      $table->string('token');
+      $table->timestamp('created_at')->nullable();
+    });
+  }
+
+  /**
+   * Reverse the migrations.
+   *
+   * @return void
+   */
+  public function down()
+  {
+    Schema::dropIfExists('owner_password_resets');
+  }
+}
+```
+
+- `database/migrations/create_admin_password_resets.php`を編集<br>
+
+```php:create_admin_password_resets.php
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+class CreateAdminPasswordResets extends Migration
+{
+  /**
+   * Run the migrations.
+   *
+   * @return void
+   */
+  public function up()
+  {
+    Schema::create('admin_password_resets', function (Blueprint $table) {
+      $table->string('email')->index();
+      $table->string('token');
+      $table->timestamp('created_at')->nullable();
+    });
+  }
+
+  /**
+   * Reverse the migrations.
+   *
+   * @return void
+   */
+  public function down()
+  {
+    Schema::dropIfExists('admin_password_resets');
+  }
+}
+```
+
+- `$ php artisan migrate`を実行<br>
