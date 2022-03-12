@@ -99,3 +99,187 @@ class RouteServiceProvider extends ServiceProvider
   }
 }
 ```
+
+## 37 Guard 設定 config/auth.php
+
+### 4. ガード設定
+
+Laravel 標準の機能<br>
+
+`config/auth.php`<br>
+
+guards ・・ 今回は session<br>
+Providers ・・ 今回は Eloquent(モデル)<br>
+Passwordreset をそれぞれ設定<br>
+
+参考記事: https://qiita.com/tomoeine/items/40a966bf3801633cf90f <br>
+参考: https://readouble.com/laravel/8.x/ja/authentication.html <br>
+
+```php:auth.php
+'guards' => [
+  'guard-name' => [
+    'driver' => 'session',
+    'provider' => 'users',
+  ],
+],
+```
+
+```
+Route::get('test', function() {})->middleware('auth:guard-name');
+ルートで auth:ガード名 で認証されたユーザーだけにアクセス許可
+```
+
+### ハンズオン
+
+- `config/auth.php`を編集<br>
+
+```php:auth.php
+<?php
+
+return [
+  /*
+    |--------------------------------------------------------------------------
+    | Authentication Defaults
+    |--------------------------------------------------------------------------
+    |
+    | This option controls the default authentication "guard" and password
+    | reset options for your application. You may change these defaults
+    | as required, but they're a perfect start for most applications.
+    |
+    */
+
+  'defaults' => [
+    'guard' => 'users',
+    'passwords' => 'users',
+  ],
+
+  /*
+    |--------------------------------------------------------------------------
+    | Authentication Guards
+    |--------------------------------------------------------------------------
+    |
+    | Next, you may define every authentication guard for your application.
+    | Of course, a great default configuration has been defined for you
+    | here which uses session storage and the Eloquent user provider.
+    |
+    | All authentication drivers have a user provider. This defines how the
+    | users are actually retrieved out of your database or other storage
+    | mechanisms used by this application to persist your user's data.
+    |
+    | Supported: "session"
+    |
+    */
+
+  'guards' => [
+    'web' => [
+      'driver' => 'session',
+      'provider' => 'users',
+    ],
+
+    'users' => [
+      'driver' => 'session',
+      'provider' => 'users',
+    ],
+
+    'owners' => [
+      'driver' => 'session',
+      'provider' => 'owners',
+    ],
+
+    'admin' => [
+      'driver' => 'session',
+      'provider' => 'admin',
+    ],
+  ],
+
+  /*
+    |--------------------------------------------------------------------------
+    | User Providers
+    |--------------------------------------------------------------------------
+    |
+    | All authentication drivers have a user provider. This defines how the
+    | users are actually retrieved out of your database or other storage
+    | mechanisms used by this application to persist your user's data.
+    |
+    | If you have multiple user tables or models you may configure multiple
+    | sources which represent each model / table. These sources may then
+    | be assigned to any extra authentication guards you have defined.
+    |
+    | Supported: "database", "eloquent"
+    |
+    */
+
+  'providers' => [
+    'users' => [
+      'driver' => 'eloquent',
+      'model' => App\Models\User::class,
+    ],
+
+    'owners' => [
+      'driver' => 'eloquent',
+      'model' => App\Models\Owner::class,
+    ],
+
+    'admin' => [
+      'driver' => 'eloquent',
+      'model' => App\Models\Admin::class,
+    ],
+
+    // 'users' => [
+    //     'driver' => 'database',
+    //     'table' => 'users',
+    // ],
+  ],
+
+  /*
+    |--------------------------------------------------------------------------
+    | Resetting Passwords
+    |--------------------------------------------------------------------------
+    |
+    | You may specify multiple password reset configurations if you have more
+    | than one user table or model in the application and you want to have
+    | separate password reset settings based on the specific user types.
+    |
+    | The expire time is the number of minutes that each reset token will be
+    | considered valid. This security feature keeps tokens short-lived so
+    | they have less time to be guessed. You may change this as needed.
+    |
+    */
+
+  'passwords' => [
+    'users' => [
+      'provider' => 'users',
+      'table' => 'password_resets',
+      'expire' => 60,
+      'throttle' => 60,
+    ],
+
+    'owners' => [
+      'provider' => 'owners',
+      'table' => 'owner_password_resets',
+      'expire' => 60,
+      'throttle' => 60,
+    ],
+
+    'admin' => [
+      'provider' => 'admin',
+      'table' => 'admin_password_resets',
+      'expire' => 60,
+      'throttle' => 60,
+    ],
+  ],
+
+  /*
+    |--------------------------------------------------------------------------
+    | Password Confirmation Timeout
+    |--------------------------------------------------------------------------
+    |
+    | Here you may define the amount of seconds before a password confirmation
+    | times out and the user is prompted to re-enter their password via the
+    | confirmation screen. By default, the timeout lasts for three hours.
+    |
+    */
+
+  'password_timeout' => 10800,
+];
+```
