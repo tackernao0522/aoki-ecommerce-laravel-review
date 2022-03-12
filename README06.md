@@ -283,3 +283,75 @@ return [
   'password_timeout' => 10800,
 ];
 ```
+
+## 38 Middleware/Authenticate
+
+### 5. Middleware 設定
+
+参考: https://readouble.com/laravel/8.x/ja/facades.html <br>
+
+`Middleware/Authenticate.php`<br>
+
+```php:Authenticate.php
+// ユーザーが未認証の場合のリダイレクト処理
+
+// URLによって条件分岐
+if (Route::is('user.*')) {
+  return route($this->user_route);
+}
+```
+
+API マニュアル<br>
+https://laravel.com/api/8.x/Illuminate/Routing/Router.html <br>
+
+`Middleware/RedirectIfAuthenticated.php`<br>
+
+```php:RedirectIfAuthenticated.php
+// ログイン済みユーザーがアクセスしてきたらリダイレクト処理
+
+Auth::guard(self::GUARD_USER)->check();
+// ガード設定対象のユーザーか
+
+if ($request->routeIs('user.*')) {
+}
+// 受信リクエストが名前付きルートに一致するか
+```
+
+### ハンズオン
+
+- `app/Http/Middleware/Authenticate.php`を編集<br>
+
+```php:Authenticate.php
+<?php
+
+namespace App\Http\Middleware;
+
+use Illuminate\Auth\Middleware\Authenticate as Middleware;
+use Illuminate\Support\Facades\Route;
+
+class Authenticate extends Middleware
+{
+  protected $user_route = 'user.login';
+  protected $owner_route = 'owner.login';
+  protected $admin_route = 'admin.login';
+
+  /**
+   * Get the path the user should be redirected to when they are not authenticated.
+   *
+   * @param  \Illuminate\Http\Request  $request
+   * @return string|null
+   */
+  protected function redirectTo($request)
+  {
+    if (!$request->expectsJson()) {
+      if (Route::is('owner.*')) {
+        return route($this->owner_route);
+      } elseif (FacadesRoute::is('admin.*')) {
+        return route($this->admin_route);
+      } else {
+        return route($this->user_route);
+      }
+    }
+  }
+}
+```
