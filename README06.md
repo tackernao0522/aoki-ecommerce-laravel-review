@@ -346,12 +346,93 @@ class Authenticate extends Middleware
     if (!$request->expectsJson()) {
       if (Route::is('owner.*')) {
         return route($this->owner_route);
-      } elseif (FacadesRoute::is('admin.*')) {
+      } elseif (Route::is('admin.*')) {
         return route($this->admin_route);
       } else {
         return route($this->user_route);
       }
     }
+  }
+}
+```
+
+## 39 Middleware/RedirectIfAuthenticated
+
+### 5. Middleware 設定
+
+参考: https://readouble.com/laravel/8.x/ja/authentication.html <br>
+参考: https://readouble.com/laravel/8.x/ja/requests.html <br>
+
+`Middleware/RedirectIfAuthenticated.php`<br>
+
+```php:RedirectIfAuthenticated.php
+// ログイン済みユーザーがアクセスしてきたらリダイレクト処理
+
+Auth::guard(self::GUARD_USER)->check();
+// ガード設定対象のユーザーか
+
+if ($request->routeIs('user.*')) {
+}
+// 受信れクエストが名前付きルートに一致するか
+```
+
+### ハンズオン
+
+- `app/Http/Middleware/RedirectIfAuthenticated.php`を編集<br>
+
+```php:RedirectIfAuthenticated.php
+<?php
+
+namespace App\Http\Middleware;
+
+use App\Providers\RouteServiceProvider;
+use Closure;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
+class RedirectIfAuthenticated
+{
+  private const GUARD_USER = 'users';
+  private const GUARD_OWNER = 'owners';
+  private const GUARD_ADMIN = 'admin';
+
+  /**
+   * Handle an incoming request.
+   *
+   * @param  \Illuminate\Http\Request  $request
+   * @param  \Closure(\Illuminate\Http\Request): (\Illuminate\Http\Response|\Illuminate\Http\RedirectResponse)  $next
+   * @param  string|null  ...$guards
+   * @return \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse
+   */
+  public function handle(Request $request, Closure $next, ...$guards)
+  {
+    // $guards = empty($guards) ? [null] : $guards;
+
+    // foreach ($guards as $guard) {
+    //     if (Auth::guard($guard)->check()) {
+    //         return redirect(RouteServiceProvider::HOME);
+    //     }
+    // }
+
+    if (Auth::guard(self::GUARD_USER)->check() && $request->routeIs('user.*')) {
+      return redirect(RouteServiceProvider::HOME);
+    }
+
+    if (
+      Auth::guard(self::GUARD_OWNER)->check() &&
+      $request->routeIs('owner.*')
+    ) {
+      return redirect(RouteServiceProvider::OWNER_HOME);
+    }
+
+    if (
+      Auth::guard(self::GUARD_ADMIN)->check() &&
+      $request->routeIs('admin.*')
+    ) {
+      return redirect(RouteServiceProvider::ADMIN_HOME);
+    }
+
+    return $next($request);
   }
 }
 ```
