@@ -29,7 +29,7 @@ services:
 
   db:
     image: mysql:5.7
-    container_name: ecommercereviewdb-host
+    container_name: ecommercedb-host
     environment:
       MYSQL_ROOT_PASSWORD: ${ROOTPASS}
       MYSQL_DATABASE: ${DATABASE}
@@ -49,7 +49,7 @@ services:
     image: phpmyadmin/phpmyadmin
     environment:
       - PMA_ARBITRARY=1
-      - PMA_HOSTS=ecommercereviewdb-host
+      - PMA_HOSTS=ecommercedb-host
       - PMA_USER=${PMAUSER}
       - PMA_PASSWORD=${PMAPASS}
     ports:
