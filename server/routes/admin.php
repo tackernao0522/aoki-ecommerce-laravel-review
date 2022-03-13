@@ -16,7 +16,7 @@ Route::get('/', function () {
 
 Route::get('/dashboard', function () {
   return view('dashboard');
-})->middleware(['auth'])->name('dashboard'); // 認証しているかどうか
+})->middleware(['auth:admin'])->name('dashboard');
 
 Route::middleware('guest')->group(function () {
   Route::get('register', [RegisteredUserController::class, 'create'])
@@ -42,7 +42,7 @@ Route::middleware('guest')->group(function () {
     ->name('password.update');
 });
 
-Route::middleware('auth')->group(function () {
+Route::middleware('auth:admin')->group(function () {
   Route::get('verify-email', [EmailVerificationPromptController::class, '__invoke'])
     ->name('verification.notice');
 
