@@ -94,3 +94,123 @@ class DatabaseSeeder extends Seeder
 ```
 
 - `$ php artisan migrate:refresh --seed`を実行<br>
+
+## 49 データを扱う方法の比較
+
+### データを扱う方法 比較表
+
+|                |                       コレクション<br>Collection                        |                    クエリビルダ<br>QueryBuilder                     |                     エロクアント<br>Eloquent(モデル)                     |
+| :------------: | :---------------------------------------------------------------------: | :-----------------------------------------------------------------: | :----------------------------------------------------------------------: |
+|    データ型    |                      Illuminate\Support\Collection                      |                    Illuminate\Support\Collection                    |        Illuminate\Database\Eloquent\Collection(Collection を継承)        |
+|    使用方法    |                      collect();<br>new Collection;                      | use Illuminate\Supports\Facades\DB;<br>DB:table(テーブル名)->get(); |              モデル名::all();<br>モデル名::select()->get();              |
+| 関連マニュアル |                              コレクション                               |                    コレクション<br>クエリビルダ                     | コレクション、クエリビルダ、<br>エロクアント、エロクアントのコレクション |
+|      特徴      |                               配列を拡張                                |                             SQL に近い                              |                               OR マッパー                                |
+|    メリット    |                           多数の専用メソッド                            |                   SQL を知っているとわかりやすい                    |                    簡潔に書ける<br>リレーションが強力                    |
+|   デメリット   | 返り値に複数のパターンあり<br>(stdClass, Collection, モデル Collection) |                        コードが長くなりがち                         |                       覚えることが多い<br>やや遅い                       |
+
+- `app/Http/Controllers/Admin/OwnersController.php`を編集<br>
+
+```php:OwnersController.php
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\Owner; // eloquent エロクアント
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB; // QueryBuilder クエリビルダ
+
+class OwnersController extends Controller
+{
+  public function __construct()
+  {
+    $this->middleware('auth:admin');
+  }
+
+  // 編集
+  public function index()
+  {
+    $e_all = Owner::all();
+    $q_get = DB::table('owners')
+      ->select('name')
+      ->get();
+    $q_first = DB::table('owners')
+      ->select('name')
+      ->first();
+
+    $c_test = collect([
+      'name' => 'テスト',
+    ]);
+
+    var_dump($q_first);
+
+    dd($e_all, $q_get, $q_first, $c_test);
+  }
+
+  /**
+   * Show the form for creating a new resource.
+   *
+   * @return \Illuminate\Http\Response
+   */
+  public function create()
+  {
+    //
+  }
+
+  /**
+   * Store a newly created resource in storage.
+   *
+   * @param  \Illuminate\Http\Request  $request
+   * @return \Illuminate\Http\Response
+   */
+  public function store(Request $request)
+  {
+    //
+  }
+
+  /**
+   * Display the specified resource.
+   *
+   * @param  int  $id
+   * @return \Illuminate\Http\Response
+   */
+  public function show($id)
+  {
+    //
+  }
+
+  /**
+   * Show the form for editing the specified resource.
+   *
+   * @param  int  $id
+   * @return \Illuminate\Http\Response
+   */
+  public function edit($id)
+  {
+    //
+  }
+
+  /**
+   * Update the specified resource in storage.
+   *
+   * @param  \Illuminate\Http\Request  $request
+   * @param  int  $id
+   * @return \Illuminate\Http\Response
+   */
+  public function update(Request $request, $id)
+  {
+    //
+  }
+
+  /**
+   * Remove the specified resource from storage.
+   *
+   * @param  int  $id
+   * @return \Illuminate\Http\Response
+   */
+  public function destroy($id)
+  {
+    //
+  }
+}
+```
