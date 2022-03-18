@@ -354,3 +354,148 @@ class OwnersController extends Controller
   }
 }
 ```
+
+## 51 Carbon その 2
+
+- `app/Http/Controllers/Admin/OwnersController.php`を編集<br>
+
+```php:OwnersController.php
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\Owner; // eloquent エロクアント
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB; // QueryBuilder クエリビルダ
+
+class OwnersController extends Controller
+{
+  public function __construct()
+  {
+    $this->middleware('auth:admin');
+  }
+
+  public function index()
+  {
+    $date_now = Carbon::now();
+    $date_parse = Carbon::parse(now());
+    echo $date_now . '<br>';
+    echo $date_now->year . '<br>';
+    echo $date_parse . '<br>';
+
+    // 編集
+    $e_all = Owner::all();
+    $q_get = DB::table('owners')
+      ->select('name', 'created_at')
+      ->get();
+    // $q_first = DB::table('owners')->select('name')->first();
+
+    // $c_test = collect([
+    //     'name' => 'テスト',
+    // ]);
+
+    // var_dump($q_first);
+
+    // dd($e_all, $q_get, $q_first, $c_test);
+
+    // 追加
+    return view('admin.owners.index', compact('e_all', 'q_get'));
+
+  /**
+   * Show the form for creating a new resource.
+   *
+   * @return \Illuminate\Http\Response
+   */
+  public function create()
+  {
+    //
+  }
+
+  /**
+   * Store a newly created resource in storage.
+   *
+   * @param  \Illuminate\Http\Request  $request
+   * @return \Illuminate\Http\Response
+   */
+  public function store(Request $request)
+  {
+    //
+  }
+
+  /**
+   * Display the specified resource.
+   *
+   * @param  int  $id
+   * @return \Illuminate\Http\Response
+   */
+  public function show($id)
+  {
+    //
+  }
+
+  /**
+   * Show the form for editing the specified resource.
+   *
+   * @param  int  $id
+   * @return \Illuminate\Http\Response
+   */
+  public function edit($id)
+  {
+    //
+  }
+
+  /**
+   * Update the specified resource in storage.
+   *
+   * @param  \Illuminate\Http\Request  $request
+   * @param  int  $id
+   * @return \Illuminate\Http\Response
+   */
+  public function update(Request $request, $id)
+  {
+    //
+  }
+
+  /**
+   * Remove the specified resource from storage.
+   *
+   * @param  int  $id
+   * @return \Illuminate\Http\Response
+   */
+  public function destroy($id)
+  {
+    //
+  }
+}
+```
+
+- `resources/views/admin/owners`ディレクトリを作成<br>
+
+* `resources/views/admin/owners/index.blade.php`ファイルを作成<br>
+
+```html:index.blade.php
+<x-app-layout>
+  <x-slot name="header">
+    <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+      {{ __('Dashboard') }}
+    </h2>
+  </x-slot>
+
+  <div class="py-12">
+    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+      <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+        <div class="p-6 bg-white border-b border-gray-200">
+          エロクアント @foreach ($e_all as $e_owner) {{ $e_owner->name }} {{
+          $e_owner->created_at->diffForHumans() }} @endforeach
+          <br />
+          クエリビルダ @foreach ($q_get as $q_owner) {{ $q_owner->name }} {{
+          Carbon\Carbon::parse($q_owner->created_at)->diffForHumans() }}
+          @endforeach
+        </div>
+      </div>
+    </div>
+  </div>
+</x-app-layout>
+```
