@@ -109,7 +109,23 @@ class OwnersController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        $owner = Owner::findOrFail($id);
+
+        // $request->validate([
+        //     'name' => 'required|string|max:255',
+        //     'email' => 'required|string|email|max:255|unique:owners',
+        //     'password' => 'required|string|confirmed|min:8',
+        // ]);
+
+        $owner->name = $request->name;
+        $owner->email = $request->email;
+        $owner->password = Hash::make($request->password);
+
+        $owner->save();
+
+        return redirect()
+            ->route('admin.owners.index')
+            ->with('message', 'オーナ情報を更新しました。');
     }
 
     /**
