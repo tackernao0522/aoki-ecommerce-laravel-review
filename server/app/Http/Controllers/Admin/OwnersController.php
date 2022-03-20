@@ -149,4 +149,21 @@ class OwnersController extends Controller
             'status' => 'alert'
         ]);
     }
+
+    public function expiredOwnerIndex()
+    {
+        $expiredOwners = Owner::onlyTrashed()->get(); // 論理削除したデータを取得できる
+
+        return view('admin.expired-owners', compact('expiredOwners'));
+    }
+
+    public function expiredOwnerDestroy($id)
+    {
+        Owner::onlyTrashed()->findOrFail($id)->forceDelete(); // 完全に削除する(物理的削除)
+
+        return redirect()->back()->with([
+            'message' => '期限切れオーナー情報を削除しました。',
+            'status' => 'alert'
+        ]);
+    }
 }
