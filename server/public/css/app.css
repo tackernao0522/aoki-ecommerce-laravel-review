@@ -710,9 +710,6 @@ select {
 .mb-12 {
   margin-bottom: 3rem;
 }
-.mb-8 {
-  margin-bottom: 2rem;
-}
 .block {
   display: block;
 }
@@ -1571,11 +1568,6 @@ select {
 
   .md\:border-l {
     border-left-width: 1px;
-  }
-
-  .md\:px-4 {
-    padding-left: 1rem;
-    padding-right: 1rem;
   }
 }
 @media (min-width: 1024px) {

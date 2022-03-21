@@ -34,6 +34,24 @@ class OwnersTableSeeder extends Seeder
                 'password' => Hash::make('ggz6kxp3'),
                 'created_at' => '2022/03/16 11:11:11',
             ],
+            [
+                'name' => 'test1',
+                'email' => 'test1@test.com',
+                'password' => Hash::make('password123'),
+                'created_at' => '2022/03/16 11:11:11',
+            ],
+            [
+                'name' => 'test2',
+                'email' => 'test2@test.com',
+                'password' => Hash::make('password123'),
+                'created_at' => '2022/03/16 11:11:11',
+            ],
+            [
+                'name' => 'test3',
+                'email' => 'test3@test.com',
+                'password' => Hash::make('password123'),
+                'created_at' => '2022/03/16 11:11:11',
+            ],
         ]);
     }
 }
