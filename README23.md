@@ -169,3 +169,191 @@ class DatabaseSeeder extends Seeder
 ```
 
 - `$ php artisan migrate:fresh --seed`を実行<br>
+
+## 65 Shop リレーション 1 対 1
+
+https://readouble.com/laravel/8.x/ja/eloquent-relationships.html#one-to-one <br>
+
+### Eloquent リレーション設定
+
+Owner
+
+```php:Owner.php
+use App\Models\Shop;
+
+public function shop()
+{
+  return $this->hasOne(Shop::class);
+}
+```
+
+Shop
+
+```php:Shop.php
+use App\Models\Owner;
+
+public function owner()
+{
+  return $this->belongeTo(Owner::class);
+}
+```
+
+### Laravel Tinker で確認
+
+php artisan tinker<br>
+
+`$owner1 = App\Models\Owner::find(1)->shop;`<br>
+・・Owner に紐づく Shop 情報を取得<br>
+
+`$shop1 = App\Models\Ahow::find(1)->owner;`<br>
+・・Shop に紐づく Owner 情報を取得<br>
+
+### ハンズオン
+
+- `app/Models/Owner.php`を編集<br>
+
+```php:Owner.php
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\Shop;
+
+class Owner extends Authenticatable
+{
+  use HasFactory, SoftDeletes;
+
+  /**
+   * The attributes that are mass assignable.
+   *
+   * @var array<int, string>
+   */
+  protected $fillable = ['name', 'email', 'password'];
+
+  /**
+   * The attributes that should be hidden for serialization.
+   *
+   * @var array<int, string>
+   */
+  protected $hidden = ['password', 'remember_token'];
+
+  /**
+   * The attributes that should be cast.
+   *
+   * @var array<string, string>
+   */
+  protected $casts = [
+    'email_verified_at' => 'datetime',
+  ];
+
+  public function shop()
+  {
+    return $this->hasOne(Shop::class);
+  }
+}
+```
+
+- `app/Models/Shop.php`を編集<br>
+
+```php:Shop.php
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use app\Models\Owner;
+
+class Shop extends Model
+{
+  use HasFactory;
+
+  public function owner()
+  {
+    return $this->belongsTo(Owner::class);
+  }
+}
+```
+
+- `$ php artisan tinker`を実行<br>
+
+```:terminal
+>>> $owner1 = App\Models\Owner::find(1);
+=> App\Models\Owner {#4604
+     id: 1,
+     name: "Kaira",
+     email: "takaproject777@gmail.com",
+     email_verified_at: null,
+     #password: "$2y$10$jIwqyPQ.LrXbpndhOgi5J.Di2b.j0SKHzL.Dn/Y.ZgzuQmvsE29Ea",
+     #remember_token: null,
+     created_at: "2022-03-16 11:11:11",
+     updated_at: null,
+     deleted_at: null,
+   }
+```
+
+```:terminal
+>>> $owner1 = App\Models\Owner::find(1)->shop;
+=> App\Models\Shop {#4606
+     id: 1,
+     owner_id: 1,
+     name: "お店の名前が入ります。",
+     information: "ここにお店の情報が入ります。ここにお店の情報が入ります。ここにお店の情報が入ります。",
+     filename: "",
+     is_selling: 1,
+     created_at: null,
+     updated_at: null,
+   }
+```
+
+```:terminal
+>>> $owner1 = App\Models\Owner::find(1)->shop->name;
+=> "お店の名前が入ります。"
+```
+
+```:terminal
+>>> $owner1 = App\Models\Owner::find(1)->shop->is_selling;
+=> 1
+```
+
+```:terminal
+>>> $shop1 = App\Models\Shop::find(1);
+=> App\Models\Shop {#4581
+     id: 1,
+     owner_id: 1,
+     name: "お店の名前が入ります。",
+     information: "ここにお店の情報が入ります。ここにお店の情報が入ります。ここにお店の情報が入ります。",
+     filename: "",
+     is_selling: 1,
+     created_at: null,
+     updated_at: null,
+   }
+```
+
+```:terminal
+=> App\Models\Owner {#4618
+     id: 1,
+     name: "Kaira",
+     email: "takaproject777@gmail.com",
+     email_verified_at: null,
+     #password: "$2y$10$jIwqyPQ.LrXbpndhOgi5J.Di2b.j0SKHzL.Dn/Y.ZgzuQmvsE29Ea",
+     #remember_token: null,
+     created_at: "2022-03-16 11:11:11",
+     updated_at: null,
+     deleted_at: null,
+   }
+```
+
+```:terminal
+>>> $shop1 = App\Models\Shop::find(1)->owner->name;
+=> "Kaira"
+```
+
+```:terminal
+>>> $shop1 = App\Models\Shop::find(1)->owner->email;
+=> "takaproject777@gmail.com"
+```
