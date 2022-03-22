@@ -8,6 +8,8 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB; // QueryBuilder クエリビルダ
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class OwnersController extends Controller
 {
@@ -65,6 +67,11 @@ class OwnersController extends Controller
             'email' => 'required|string|email|max:255|unique:owners',
             'password' => 'required|string|confirmed|min:8',
         ]);
+
+        try{}catch(Throwable $e){
+            Log::error($e);
+            throw $e;
+        }
 
         Owner::create([
             'name' => $request->name,

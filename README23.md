@@ -357,3 +357,274 @@ class Shop extends Model
 >>> $shop1 = App\Models\Shop::find(1)->owner->email;
 => "takaproject777@gmail.com"
 ```
+
+## 67 Shop 作成 その 1(トランザクション・例外・エラー)
+
+### Shop の作成
+
+`Admin/OwnersController@store`<br>
+
+外部キー向けに id を取得<br>
+
+```
+$owner = Owner::create();
+$owner->id;
+```
+
+`Shop::create`で作成する場合はモデル側に`$fillable`も必要<br>
+
+### トランザクション
+
+複数のテーブルに保存する際はトランザクションをかける<br>
+無名関数内で親の変数を使うには `use`が必要<br>
+
+```php:OwnersController.php
+DB::transaction(function () use ($request) {
+  DB::create($request->name);
+  DB::create($request->owneer_id);
+}, 2); // NG時2回試す
+```
+
+### 例外 + ログ
+
+トランザクションでエラー時は例外発生<br>
+PHP7 から`Throwable`で例外取得<br>
+ログは `storage/logs`内に保存<br>
+
+```php:OwnersController.php
+use Throwable;
+use Illuminate\Support\Facades\Log;
+
+try {
+  // トランザクション処理
+} catch (Throwable $e) {
+  Log::error($e);
+  throw $e;
+}
+```
+
+### ハンズオン
+
+- `app/Models/Shop.php`を編集<br>
+
+```php:Shop
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use app\Models\Owner;
+
+class Shop extends Model
+{
+  use HasFactory;
+
+  // 追加
+  protected $fillable = [
+    'owner_id',
+    'name',
+    'information',
+    'filename',
+    'is_selling',
+  ];
+  // ここまで
+
+  public function owner()
+  {
+    return $this->belongsTo(Owner::class);
+  }
+}
+```
+
+- `app/Http/Controllers/Admin/OwnersController.php`を編集<br>
+
+```php:OwnersController.php
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\Owner; // eloquent エロクアント
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB; // QueryBuilder クエリビルダ
+use Illuminate\Support\Facades\Hash;
+// 追加
+use Illuminate\Support\Facades\Log;
+use Throwable;
+// ここまで
+
+class OwnersController extends Controller
+{
+  public function __construct()
+  {
+    $this->middleware('auth:admin');
+  }
+
+  public function index()
+  {
+    // $date_now = Carbon::now();
+    // $date_parse = Carbon::parse(now());
+    // echo $date_now . '<br>';
+    // echo $date_now->year . '<br>';
+    // echo $date_parse . '<br>';
+
+    // $e_all = Owner::all();
+    // $q_get = DB::table('owners')->select('name', 'created_at')->get();
+    // $q_first = DB::table('owners')->select('name')->first();
+
+    // $c_test = collect([
+    //     'name' => 'テスト',
+    // ]);
+
+    // var_dump($q_first);
+
+    // dd($e_all, $q_get, $q_first, $c_test);
+
+    $owners = Owner::select('id', 'name', 'email', 'created_at')->paginate(3);
+
+    return view('admin.owners.index', compact('owners'));
+  }
+
+  /**
+   * Show the form for creating a new resource.
+   *
+   * @return \Illuminate\Http\Response
+   */
+  public function create()
+  {
+    return view('admin.owners.create');
+  }
+
+  /**
+   * Store a newly created resource in storage.
+   *
+   * @param  \Illuminate\Http\Request  $request
+   * @return \Illuminate\Http\Response
+   */
+  public function store(Request $request)
+  {
+    $request->validate([
+      'name' => 'required|string|max:255',
+      'email' => 'required|string|email|max:255|unique:owners',
+      'password' => 'required|string|confirmed|min:8',
+    ]);
+
+    // 追加
+    try {
+    } catch (Throwable $e) {
+      Log::error($e);
+      throw $e;
+    }
+    // ここまで
+
+    Owner::create([
+      'name' => $request->name,
+      'email' => $request->email,
+      'password' => Hash::make($request->password),
+    ]);
+
+    return redirect()
+      ->route('admin.owners.index')
+      ->with([
+        'message' => 'オーナー登録を実施しました。',
+        'status' => 'info',
+      ]);
+  }
+
+  /**
+   * Display the specified resource.
+   *
+   * @param  int  $id
+   * @return \Illuminate\Http\Response
+   */
+  public function show($id)
+  {
+    //
+  }
+
+  /**
+   * Show the form for editing the specified resource.
+   *
+   * @param  int  $id
+   * @return \Illuminate\Http\Response
+   */
+  public function edit($id)
+  {
+    $owner = Owner::findOrFail($id);
+
+    return view('admin.owners.edit', compact('owner'));
+  }
+
+  /**
+   * Update the specified resource in storage.
+   *
+   * @param  \Illuminate\Http\Request  $request
+   * @param  int  $id
+   * @return \Illuminate\Http\Response
+   */
+  public function update(Request $request, $id)
+  {
+    $owner = Owner::findOrFail($id);
+
+    // $request->validate([
+    //     'name' => 'required|string|max:255',
+    //     'email' => 'required|string|email|max:255|unique:owners',
+    //     'password' => 'required|string|confirmed|min:8',
+    // ]);
+
+    $owner->name = $request->name;
+    $owner->email = $request->email;
+    $owner->password = Hash::make($request->password);
+
+    $owner->save();
+
+    return redirect()
+      ->route('admin.owners.index')
+      ->with([
+        'message' => 'オーナ情報を更新しました。',
+        'status' => 'info',
+      ]);
+  }
+
+  /**
+   * Remove the specified resource from storage.
+   *
+   * @param  int  $id
+   * @return \Illuminate\Http\Response
+   */
+  public function destroy($id)
+  {
+    Owner::findOrFail($id)->delete(); // ソフトデリート
+
+    return redirect()
+      ->back()
+      ->with([
+        'message' => 'オーナー情報を削除しました。',
+        'status' => 'alert',
+      ]);
+  }
+
+  public function expiredOwnerIndex()
+  {
+    $expiredOwners = Owner::onlyTrashed()->get(); // 論理削除したデータを取得できる
+
+    return view('admin.expired-owners', compact('expiredOwners'));
+  }
+
+  public function expiredOwnerDestroy($id)
+  {
+    Owner::onlyTrashed()
+      ->findOrFail($id)
+      ->forceDelete(); // 完全に削除する(物理的削除)
+
+    return redirect()
+      ->back()
+      ->with([
+        'message' => '期限切れオーナー情報を削除しました。',
+        'status' => 'alert',
+      ]);
+  }
+}
+```
