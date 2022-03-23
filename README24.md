@@ -358,3 +358,343 @@ class CreateShopsTable extends Migration
 ```
 
 - `$ php artisan migrate:refresh --seed`を実行<br>
+
+## 70 Shop Index (ルート, コントローラ, ビュー)
+
+### Shop 表示までの設定
+
+Route<br>
+Index, edit, update の３つ<br>
+`owner.shops.index`など<br>
+
+View<br>
+ロゴサイズ調整, owner-navigation<br>
+
+Controller・・ShopController<br>
+`__construnct`で`$this->middleware('auth:owners');`<br>
+
+index メソッド
+
+```php:ShopController.php
+use Illuminate\Support\Facades\Auth;
+
+$ownerId = Auth::id(); // 認証されているid(ログインしているid)
+$shops = Shop::where('owner_id', $ownerId)->get();
+// whereは検索条件
+```
+
+### ハンズオン
+
+- `$ php artisan make:controller Owner/ShopController`を実行<br>
+
+* `routes/owner.php`を編集<br>
+
+```php:owner.php
+<?php
+
+use App\Http\Controllers\Owner\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Owner\Auth\ConfirmablePasswordController;
+use App\Http\Controllers\Owner\Auth\EmailVerificationNotificationController;
+use App\Http\Controllers\Owner\Auth\EmailVerificationPromptController;
+use App\Http\Controllers\Owner\Auth\NewPasswordController;
+use App\Http\Controllers\Owner\Auth\PasswordResetLinkController;
+use App\Http\Controllers\Owner\Auth\RegisteredUserController;
+use App\Http\Controllers\Owner\Auth\VerifyEmailController;
+use App\Http\Controllers\Owner\ShopController;
+use Illuminate\Support\Facades\Route;
+
+Route::get('/', function () {
+  return view('owner.welcome');
+});
+
+// 追加
+Route::prefix('shops')
+  ->middleware('auth:owners')
+  ->group(function () {
+    Route::get('index', [ShopController::class, 'index'])->name('shops.index');
+    Route::get('edit/{shop}', [ShopController::class, 'edit'])->name(
+      'shops.edit'
+    );
+    Route::post('update/{shop}', [ShopController::class, 'update'])->name(
+      'shops.update'
+    );
+  });
+// ここまで
+
+Route::get('/dashboard', function () {
+  return view('owner.dashboard');
+})
+  ->middleware(['auth:owners'])
+  ->name('dashboard'); // 認証しているかどうか
+
+Route::middleware('guest')->group(function () {
+  Route::get('register', [RegisteredUserController::class, 'create'])->name(
+    'register'
+  );
+
+  Route::post('register', [RegisteredUserController::class, 'store']);
+
+  Route::get('login', [AuthenticatedSessionController::class, 'create'])->name(
+    'login'
+  );
+
+  Route::post('login', [AuthenticatedSessionController::class, 'store']);
+
+  Route::get('forgot-password', [
+    PasswordResetLinkController::class,
+    'create',
+  ])->name('password.request');
+
+  Route::post('forgot-password', [
+    PasswordResetLinkController::class,
+    'store',
+  ])->name('password.email');
+
+  Route::get('reset-password/{token}', [
+    NewPasswordController::class,
+    'create',
+  ])->name('password.reset');
+
+  Route::post('reset-password', [NewPasswordController::class, 'store'])->name(
+    'password.update'
+  );
+});
+
+Route::middleware('auth:owners')->group(function () {
+  Route::get('verify-email', [
+    EmailVerificationPromptController::class,
+    '__invoke',
+  ])->name('verification.notice');
+
+  Route::get('verify-email/{id}/{hash}', [
+    VerifyEmailController::class,
+    '__invoke',
+  ])
+    ->middleware(['signed', 'throttle:6,1'])
+    ->name('verification.verify');
+
+  Route::post('email/verification-notification', [
+    EmailVerificationNotificationController::class,
+    'store',
+  ])
+    ->middleware('throttle:6,1')
+    ->name('verification.send');
+
+  Route::get('confirm-password', [
+    ConfirmablePasswordController::class,
+    'show',
+  ])->name('password.confirm');
+
+  Route::post('confirm-password', [
+    ConfirmablePasswordController::class,
+    'store',
+  ]);
+
+  Route::post('logout', [
+    AuthenticatedSessionController::class,
+    'destroy',
+  ])->name('logout');
+});
+```
+
+- `app/Http/Controllers/Owner/ShopController.php`を編集<br>
+
+```php:ShopController.php
+<?php
+
+namespace App\Http\Controllers\Owner;
+
+use App\Http\Controllers\Controller;
+use App\Models\Shop;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
+class ShopController extends Controller
+{
+  public function __construct()
+  {
+    $this->middleware('auth:owners');
+  }
+
+  public function index()
+  {
+    $ownerId = Auth::id();
+    $shops = Shop::where('owner_id', $ownerId)->get();
+
+    return view('owner.shops.index', compact('shops'));
+  }
+
+  public function edit($id)
+  {
+  }
+
+  public function update(Request $request, $id)
+  {
+  }
+}
+```
+
+- `$ mkdir resources/views/owner/shops && touch $_/{index.blade.php,edit.blade.php}`を実行<br>
+
+- `resources/views/owner/shops/index.blade.php`を編集<br>
+
+```php:index.blade.php
+<x-app-layout>
+  <x-slot name="header">
+      <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+          {{ __('Dashboard') }}
+      </h2>
+  </x-slot>
+
+  <div class="py-12">
+      <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+          <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+              <div class="p-6 bg-white border-b border-gray-200">
+                  @foreach($shops as $shop)
+                    {{ $shop->name }}
+                  @endforeach
+              </div>
+          </div>
+      </div>
+  </div>
+</x-app-layout>
+```
+
+- `resourcesivew/owner/shops/edit.blade.php`を編集<br>
+
+```php:edit.blade.php
+<x-app-layout>
+  <x-slot name="header">
+      <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+          {{ __('Dashboard') }}
+      </h2>
+  </x-slot>
+
+  <div class="py-12">
+      <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+          <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+              <div class="p-6 bg-white border-b border-gray-200">
+                  You're logged in!
+              </div>
+          </div>
+      </div>
+  </div>
+</x-app-layout>
+```
+
+- `resources/views/layouts/owner-navigation.blade.php`を編集<br>
+
+```php:owner-navigation.blade.php
+<nav x-data="{ open: false }" class="bg-white border-b border-gray-100">
+    <!-- Primary Navigation Menu -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16">
+            <div class="flex">
+                <!-- Logo -->
+                <div class="shrink-0 flex items-center">
+                    // 編集
+                    <div class="w-12">
+                        <a href="{{ route('owner.dashboard') }}">
+                            <x-application-logo class="block h-10 w-auto fill-current text-gray-600" />
+                        </a>
+                    </div>
+                    // ここまで
+                </div>
+
+                <!-- Navigation Links -->
+                <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
+                    <x-nav-link :href="route('owner.dashboard')" :active="request()->routeIs('owner.dashboard')">
+                        {{ __('Dashboard') }}
+                    </x-nav-link>
+                    // 追加
+                    <x-nav-link :href="route('owner.shops.index')" :active="request()->routeIs('owner.shops.index')">
+                        店舗情報
+                    </x-nav-link>
+                    // ここまで
+                </div>
+            </div>
+
+            <!-- Settings Dropdown -->
+            <div class="hidden sm:flex sm:items-center sm:ml-6">
+                <x-dropdown align="right" width="48">
+                    <x-slot name="trigger">
+                        <button
+                            class="flex items-center text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:outline-none focus:text-gray-700 focus:border-gray-300 transition duration-150 ease-in-out">
+                            <div>{{ Auth::user()->name }}</div>
+
+                            <div class="ml-1">
+                                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd"
+                                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                        </button>
+                    </x-slot>
+
+                    <x-slot name="content">
+                        <!-- Authentication -->
+                        <form method="POST" action="{{ route('owner.logout') }}">
+                            @csrf
+
+                            <x-dropdown-link :href="route('owner.logout')" onclick="event.preventDefault();
+                                                this.closest('form').submit();">
+                                {{ __('Log Out') }}
+                            </x-dropdown-link>
+                        </form>
+                    </x-slot>
+                </x-dropdown>
+            </div>
+
+            <!-- Hamburger -->
+            <div class="-mr-2 flex items-center sm:hidden">
+                <button @click="open = ! open"
+                    class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-500 transition duration-150 ease-in-out">
+                    <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+                        <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex"
+                            stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16M4 18h16" />
+                        <path :class="{'hidden': ! open, 'inline-flex': open }" class="hidden"
+                            stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Responsive Navigation Menu -->
+    <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
+        <div class="pt-2 pb-3 space-y-1">
+            <x-responsive-nav-link :href="route('owner.dashboard')" :active="request()->routeIs('owner.dashboard')">
+                {{ __('Dashboard') }}
+            </x-responsive-nav-link>
+            // 追加
+            <x-responsive-nav-link :href="route('owner.shops.index')" :active="request()->routeIs('owner.shops.index')">
+                店舗情報
+            </x-responsive-nav-link>
+            // ここまで
+        </div>
+
+        <!-- Responsive Settings Options -->
+        <div class="pt-4 pb-1 border-t border-gray-200">
+            <div class="px-4">
+                <div class="font-medium text-base text-gray-800">{{ Auth::user()->name }}</div>
+                <div class="font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
+            </div>
+
+            <div class="mt-3 space-y-1">
+                <!-- Authentication -->
+                <form method="POST" action="{{ route('owner.logout') }}">
+                    @csrf
+
+                    <x-responsive-nav-link :href="route('owner.logout')" onclick="event.preventDefault();
+                                        this.closest('form').submit();">
+                        {{ __('Log Out') }}
+                    </x-responsive-nav-link>
+                </form>
+            </div>
+        </div>
+    </div>
+</nav>
+```
