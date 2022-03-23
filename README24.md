@@ -293,3 +293,68 @@ class OwnersController extends Controller
     </div>
 </x-app-layout>
 ```
+
+## 69 Shop Delete(カスケード)
+
+### Shop の削除 カスケード
+
+Owner->Shop と<br>
+外部キー制約を設定しているため追加設定が必要<br>
+
+```
+$table->foreginId('owner_id')
+  ->constrained()
+  ->onUpdate('cascade')
+  ->onDelete('cascade');
+```
+
+### ハンズオン
+
+- `database/migrations/create_shops_table.php`を編集<br>
+
+```php:create_shops_table.php
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+class CreateShopsTable extends Migration
+{
+  /**
+   * Run the migrations.
+   *
+   * @return void
+   */
+  public function up()
+  {
+    Schema::create('shops', function (Blueprint $table) {
+      $table->id();
+      // 編集
+      $table
+        ->foreignId('owner_id')
+        ->constrained()
+        ->onUpdate('cascade')
+        ->onDelete('cascade');
+      // ここまで
+      $table->string('name');
+      $table->text('information');
+      $table->string('filename');
+      $table->boolean('is_selling');
+      $table->timestamps();
+    });
+  }
+
+  /**
+   * Reverse the migrations.
+   *
+   * @return void
+   */
+  public function down()
+  {
+    Schema::dropIfExists('shops');
+  }
+}
+```
+
+- `$ php artisan migrate:refresh --seed`を実行<br>
