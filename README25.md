@@ -90,3 +90,13 @@ class ShopController extends Controller
   }
 }
 ```
+
+## 72 カスタムエラーページ
+
+https://readouble.com/laravel/8.x/ja/errors.html (カスタム HTTP エラーページ)<br>
+
+### ハンズオン
+
+- `$ php artisan vendor:publish --tag=laravel-errors`を実行<br>
+
++ `resources/views/errors/404.blade.php`の`@extends('errors::minimal')のminimal`の部分を`illustrated-layout`に変えたりするとデザインが変わる<br>
