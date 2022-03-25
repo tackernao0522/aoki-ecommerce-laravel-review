@@ -804,6 +804,9 @@ select {
 .w-1\/4 {
   width: 25%;
 }
+.w-32 {
+  width: 8rem;
+}
 .max-w-sm {
   max-width: 24rem;
 }

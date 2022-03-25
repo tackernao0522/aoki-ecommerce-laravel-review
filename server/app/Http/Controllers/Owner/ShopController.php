@@ -8,8 +8,6 @@ use App\Models\Shop;
 use App\Services\ImageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
-use InterventionImage;
 
 class ShopController extends Controller
 {
