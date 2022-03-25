@@ -207,3 +207,142 @@ class ShopController extends Controller
     </div>
 </x-app-layout>
 ```
+
+## 77 サービスへの切り離し
+
+重複を防ぎ、ファットコントローラを防ぐため<br>
+
+`app/Services/ImageService.php`ファイルを作成<br>
+
+```php:ImageService.php
+<?php
+namespace App\Services;
+
+use InterventionImage;
+use Illuminate\Support\Facades\Storage;
+
+class ImageService
+{
+  public static function upload($imageFile, $folderName)
+  {
+    // 省略
+    Storage::put(
+      'public/' . $folderName . '/' . $fileNameToStore,
+      $resizedImage
+    );
+
+    return $fileNameToStore;
+  }
+}
+```
+
+### ハンズオン
+
+- `$ mkdir app/Services && touch $_/ImageService.php`を実行<br>
+
+* `app/Services/ImageService.php`を編集<br>
+
+```php:ImageService.php
+<?php
+
+namespace App\Services;
+
+use Illuminate\Support\Facades\Storage;
+use InterventionImage;
+
+class ImageService
+{
+  public static function upload($imageFile, $folderName)
+  {
+    $fileName = uniqid(rand() . '_');
+    $extension = $imageFile->extension();
+    $fileNameToStore = $fileName . '.' . $extension;
+    $resizedImage = InterventionImage::make($imageFile)
+      ->resize(1920, 1080)
+      ->encode();
+
+    Storage::put(
+      'public/' . $folderName . '/' . $fileNameToStore,
+      $resizedImage
+    );
+
+    return $fileNameToStore;
+  }
+}
+```
+
+- `app/Http/Controllers/Owner/ShopController.php`を編集<br>
+
+```php:ShopController.php
+<?php
+
+namespace App\Http\Controllers\Owner;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\UploadImageRequest;
+use App\Models\Shop;
+use App\Services\ImageService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use InterventionImage;
+
+class ShopController extends Controller
+{
+  public function __construct()
+  {
+    $this->middleware('auth:owners');
+
+    $this->middleware(function ($request, $next) {
+      // dd($request->route()->parameter('shop')); // 文字列
+      // // dd(Auth::id()); // 数字
+      // return $next($request);
+      $id = $request->route()->parameter('shop'); // shopのid取得
+      if (!is_null($id)) {
+        // null判定
+        $shopsOwnerId = Shop::findOrFail($id)->owner->id;
+        $shopId = (int) $shopsOwnerId; // キャスト 文字列ー>数値に型変換
+        $ownerId = Auth::id();
+        if ($shopId !== $ownerId) {
+          // 同じでなかったら
+          abort(404); // 404画面表示
+        }
+      }
+
+      return $next($request);
+    });
+  }
+
+  public function index()
+  {
+    // phpinfo();
+    // $ownerId = Auth::id();
+    $shops = Shop::where('owner_id', Auth::id())->get();
+
+    return view('owner.shops.index', compact('shops'));
+  }
+
+  public function edit($id)
+  {
+    // dd(Shop::findOrFail($id));
+    $shop = Shop::findOrFail($id);
+
+    return view('owner.shops.edit', compact('shop'));
+  }
+
+  // 編集
+  public function update(UploadImageRequest $request, $id)
+  {
+    Shop::findOrFail($id);
+
+    $imageFile = $request->image;
+
+    // もし空でなかったら及びアップロードできたら
+    if (!is_null($imageFile) && $imageFile->isValid()) {
+      $fileNameToStore = ImageService::upload($imageFile, 'shops');
+    }
+
+    return redirect()->route('owner.shops.index');
+  }
+}
+```
