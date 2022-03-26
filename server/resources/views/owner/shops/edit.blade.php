@@ -34,7 +34,7 @@
 
                             <div class="p-2 w-1/2 mx-auto">
                                 <div class="w-32">
-                                    <x-shop-thumbnail />
+                                    <x-shop-thumbnail :filename="$shop->filename" />
                                 </div>
                             </div>
 
