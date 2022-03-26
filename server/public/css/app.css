@@ -798,14 +798,14 @@ select {
 .w-28 {
   width: 7rem;
 }
+.w-32 {
+  width: 8rem;
+}
 .w-48 {
   width: 12rem;
 }
 .w-1\/4 {
   width: 25%;
-}
-.w-32 {
-  width: 8rem;
 }
 .max-w-sm {
   max-width: 24rem;
