@@ -344,3 +344,266 @@ class ImageController extends Controller
   }
 }
 ```
+
+## 83 Image Store
+
+### Image の Store ImageController
+
+ShopController@update を参考<br>
+
+```php:ImageController.php
+public function store(UploadImageRequest $request)
+{
+  $imageFiles = $request->file('files');
+  if(!is_null($imageFiles)) {
+    foreach($imageFiles as $imageFile) {
+      $fileNameToStore = ImageServece::upload($imageFile, 'products');
+        Image::create([
+          'owner_id' => Auth::id(),
+          'filename' => $fileNameToStore,
+        ]);
+      ]);
+    }
+  }
+}
+```
+
+### Image の Store ImageService
+
+```php:ImageService.php
+if (is_array($imageFile)) {
+  $file = $imageFile['image'];
+} else {
+  $file = $imageFile;
+}
+
+$fileName = uniqid(rand() . '_');
+$extension = $file->extension();
+$fileNameToStore = $fileName . '.' . $extension;
+$resizedImage = InterventionImage::make($file)
+  ->resize(1920, 1080)
+  ->encode();
+Storage::put('public/' . $folderName . '/' . $fileNameToStore, $resizedImage);
+```
+
+### ハンズオン
+
+app/Http/Controllers/Owner/ImageController.php`を編集<br>
+
+```php:ImageController.php
+<?php
+
+namespace App\Http\Controllers\Owner;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\UploadImageRequest;
+// 追加
+use App\Models\Image;
+// 追加
+use App\Services\ImageService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
+class ImageController extends Controller
+{
+  public function __construct()
+  {
+    $this->middleware('auth:owners');
+
+    $this->middleware(function ($request, $next) {
+      $id = $request->route()->parameter('image'); // imageのid取得
+      if (!is_null($id)) {
+        // null判定
+        $imagesOwnerId = Image::findOrFail($id)->owner->id;
+        $imageId = (int) $imagesOwnerId; // キャスト 文字列ー>数値に型変換
+        // $imageId = Auth::id();
+        if ($imageId !== Auth::id()) {
+          // 同じでなかったら
+          abort(404); // 404画面表示
+        }
+      }
+
+      return $next($request);
+    });
+  }
+
+  /**
+   * Display a listing of the resource.
+   *
+   * @return \Illuminate\Http\Response
+   */
+  public function index()
+  {
+    $images = Image::where('owner_id', Auth::id())
+      ->orderBy('updated_at', 'DESC')
+      ->paginate(20);
+
+    return view('owner.images.index', compact('images'));
+  }
+
+  /**
+   * Show the form for creating a new resource.
+   *
+   * @return \Illuminate\Http\Response
+   */
+  public function create()
+  {
+    return view('owner.images.create');
+  }
+
+  /**
+   * Store a newly created resource in storage.
+   *
+   * @param  \Illuminate\Http\Request  $request
+   * @return \Illuminate\Http\Response
+   */
+  // 編集
+  public function store(UploadImageRequest $request)
+  {
+    $imageFiles = $request->file('files');
+
+    if (!is_null($imageFiles)) {
+      foreach ($imageFiles as $imageFile) {
+        $fileNameToStore = ImageService::upload($imageFile, 'products');
+        Image::create([
+          'owner_id' => Auth::id(),
+          'filename' => $fileNameToStore,
+        ]);
+      }
+    }
+
+    return redirect()
+      ->route('owner.images.index')
+      ->with([
+        'message' => '画像を登録しました。',
+        'status' => 'info',
+      ]);
+  }
+
+  /**
+   * Display the specified resource.
+   *
+   * @param  int  $id
+   * @return \Illuminate\Http\Response
+   */
+  public function show($id)
+  {
+    //
+  }
+
+  /**
+   * Show the form for editing the specified resource.
+   *
+   * @param  int  $id
+   * @return \Illuminate\Http\Response
+   */
+  public function edit($id)
+  {
+    //
+  }
+
+  /**
+   * Update the specified resource in storage.
+   *
+   * @param  \Illuminate\Http\Request  $request
+   * @param  int  $id
+   * @return \Illuminate\Http\Response
+   */
+  public function update(Request $request, $id)
+  {
+    //
+  }
+
+  /**
+   * Remove the specified resource from storage.
+   *
+   * @param  int  $id
+   * @return \Illuminate\Http\Response
+   */
+  public function destroy($id)
+  {
+    //
+  }
+}
+```
+
+- `app/Services/ImageService.php`を編集<br>
+
+```php:ImageService.php
+<?php
+
+namespace App\Services;
+
+use Illuminate\Support\Facades\Storage;
+use InterventionImage;
+
+class ImageService
+{
+  public static function upload($imageFile, $folderName)
+  {
+    // dd($imageFile['image']);
+    // 配列かどうかの判定をかける
+    if (is_array($imageFile)) {
+      $file = $imageFile['image'];
+    } else {
+      $file = $imageFile;
+    }
+
+    $fileName = uniqid(rand() . '_');
+    $extension = $file->extension();
+    $fileNameToStore = $fileName . '.' . $extension;
+    $resizedImage = InterventionImage::make($file)
+      ->resize(1920, 1080)
+      ->encode();
+
+    Storage::put(
+      'public/' . $folderName . '/' . $fileNameToStore,
+      $resizedImage
+    );
+
+    return $fileNameToStore;
+  }
+}
+```
+
+- `resources/views/owner/images/index.blade.php`を編集<br>
+
+```php:index.blade.php
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            {{ __('Dashboard') }}
+        </h2>
+    </x-slot>
+
+    <div class="py-12">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6 bg-white border-b border-gray-200">
+                    <x-flash-message status="session('status')" />
+                    <div class="flex justify-end mb-4">
+                        <button onclick="location.href='{{ route('owner.images.create') }}'"
+                            class="text-white bg-purple-500 border-0 py-2 px-8 focus:outline-none hover:bg-purple-600 rounded text-lg">新規登録する</button>
+                    </div>
+                    // 編集
+                    <div class="flex flex-wrap">
+                        @foreach ($images as $image)
+                            <div class="w-1/4 p-4">
+                                <a href="{{ route('owner.images.edit', $image->id) }}">
+                                    <div class="border rounded-md p-4">
+                                        <x-thumbnail :filename="$image->filename" type="products" />
+                                        <div class="text-xl">
+                                            {{ $image->title }}
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                        @endforeach
+                    </div>
+                    {{ $images->links() }}
+                </div>
+            </div>
+        </div>
+    </div>
+</x-app-layout>
+```
