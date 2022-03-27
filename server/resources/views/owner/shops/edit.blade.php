@@ -33,8 +33,10 @@
                             </div>
 
                             <div class="p-2 w-1/2 mx-auto">
-                                <div class="w-32">
-                                    <x-thumbnail :filename="$shop->filename" type="shops" />
+                                <div class="relative">
+                                    <div class="w-32">
+                                        <x-thumbnail :filename="$shop->filename" type="shops" />
+                                    </div>
                                 </div>
                             </div>
 
