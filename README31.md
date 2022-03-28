@@ -260,3 +260,105 @@ if(session('status') === 'alert'){ $bgColor = 'bg-red-500'; }
     </div>
 @endif
 ```
+
+## 86 Image ダミーデータ
+
+`php artisan make:seed ImageSeeder` <br>
+
+画像はリサイズ・リネーム後 `storage/products`フォルダに保存<br>
+いくつかのファイル枚を書き換えつつダミーとして登録 sample1.jpg 〜 saple6.jpg<br>
+
+Storage 内ファイルは git にアップすると消えるので`public/images`内に保存しつつ<br>
+
+### ハンズオン
+
+- `$ php artisan make:seeder ImagesTableSeeder`を実行<br>
+
+`database/seeders/ImagesTableSeeder.php`を編集<br>
+
+```php:ImagesTableSeeder.php
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+
+class ImagesTableSeeder extends Seeder
+{
+  /**
+   * Run the database seeds.
+   *
+   * @return void
+   */
+  public function run()
+  {
+    DB::table('images')->insert([
+      [
+        'owner_id' => 1,
+        'filename' => 'sample1.jpg',
+        'title' => null,
+      ],
+      [
+        'owner_id' => 1,
+        'filename' => 'sample2.jpg',
+        'title' => null,
+      ],
+      [
+        'owner_id' => 1,
+        'filename' => 'sample3.jpg',
+        'title' => null,
+      ],
+      [
+        'owner_id' => 1,
+        'filename' => 'sample4.png',
+        'title' => null,
+      ],
+      [
+        'owner_id' => 1,
+        'filename' => 'sample5.png',
+        'title' => null,
+      ],
+      [
+        'owner_id' => 1,
+        'filename' => 'sample6.png',
+        'title' => null,
+      ],
+    ]);
+  }
+}
+```
+
+- `database/seeders/DatabaseSeeder.php`を編集<br>
+
+```php:DatabaseSeeder.php
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+
+class DatabaseSeeder extends Seeder
+{
+  /**
+   * Seed the application's database.
+   *
+   * @return void
+   */
+  public function run()
+  {
+    // \App\Models\User::factory(10)->create();
+    $this->call([
+      OwnersTableSeeder::class,
+      AdminsTableSeeder::class,
+      ShopsTableSeeder::class,
+      // 追加
+      ImagesTableSeeder::class,
+    ]);
+  }
+}
+```
+
+- `storage/app/public/products`の中のファイルを sample1.jpg〜sample6.jpg くらいまでリネームして、それらをコピーして`public/images`フォルダ内に貼り付ける<br>
+
+* `$ php artisan migrate:fresh --seed`を実行<br>
