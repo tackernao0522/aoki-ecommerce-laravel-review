@@ -362,3 +362,124 @@ class DatabaseSeeder extends Seeder
 - `storage/app/public/products`の中のファイルを sample1.jpg〜sample6.jpg くらいまでリネームして、それらをコピーして`public/images`フォルダ内に貼り付ける<br>
 
 * `$ php artisan migrate:fresh --seed`を実行<br>
+
+## 87 Category モデル, マイグレーション
+
+### Category モデル
+
+`php artisan make:model PrimaryCategory -m`<br>
+`php artisan make:model SecondaryCategory`<br>
+
+モデル 1 対多のリレーション<br>
+
+```php:PrimaryCategory.php
+public function secondary()
+{
+  return $this->hasMany(SecondaryCategory::class);
+}
+```
+
+Secondary からは belongsTo<br>
+
+### ハンズオン
+
+- `$ php artisan make:model PrimaryCategory -m`を実行<br>
+
+* `$ php artisan make:model SecondaryCategory`を実行<br>
+
+- `app/Models/PrimaryCategory.php`を編集<br>
+
+```php:PrimaryCategory.php
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use App\Models\SecondaryCategory;
+
+class PrimaryCategory extends Model
+{
+  use HasFactory;
+
+  public function seconday()
+  {
+    return $this->hasMany(SecondaryCategory::class);
+  }
+}
+```
+
+- `app/Models/SecondaryCategory.php`を編集<br>
+
+```php:SecondaryCategory.php
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use App\Models\PrimaryCategory;
+
+class SecondaryCategory extends Model
+{
+  use HasFactory;
+
+  public function primary()
+  {
+    return $this->belongsTo(PrimaryCategory::class);
+  }
+}
+```
+
+- `create_primary_categories_table.php`を`create_categories_table.php`にリネーム<br>
+
+* `database/migrations/create_categories_table.php`を編集<br>
+
+```php:create_categories_table.php`を編集<br>
+
+```php:create_categories_table.php
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+class CreateCategoriesTable extends Migration
+{
+  /**
+   * Run the migrations.
+   *
+   * @return void
+   */
+  public function up()
+  {
+    Schema::create('primary_categories', function (Blueprint $table) {
+      $table->id();
+      $table->string('name');
+      $table->integer('sort_order');
+      $table->timestamps();
+    });
+
+    Schema::create('secondary_categories', function (Blueprint $table) {
+      $table->id();
+      $table->foreignId('primary_category_id')->constrained();
+      $table->string('name');
+      $table->integer('sort_order');
+      $table->timestamps();
+    });
+  }
+
+  /**
+   * Reverse the migrations.
+   *
+   * @return void
+   */
+  public function down()
+  {
+    Schema::dropIfExists('secondary_categories');
+    Schema::dropIfExists('primary_categories');
+  }
+}
+```
+
+- `$ php artisan migrate`を実行<br>
