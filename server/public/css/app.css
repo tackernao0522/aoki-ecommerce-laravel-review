@@ -685,8 +685,8 @@ select {
 .mt-4 {
   margin-top: 1rem;
 }
-.mt-44 {
-  margin-top: 11rem;
+.mt-32 {
+  margin-top: 8rem;
 }
 .ml-1 {
   margin-left: 0.25rem;
@@ -726,9 +726,6 @@ select {
 }
 .mb-12 {
   margin-bottom: 3rem;
-}
-.mt-32 {
-  margin-top: 8rem;
 }
 .block {
   display: block;

@@ -163,3 +163,221 @@ class DatabaseSeeder extends Seeder
      ],
    }
 ```
+
+## 89 Product の雛形作成
+
+### Products Table
+
+|   論理    |          物理          |    データ型     | キー |
+| :-------: | :--------------------: | :-------------: | :--: |
+|    id     |           id           |     bigint      |  UK  |
+|  店舗 id  |        shopt_id        |     bigint      |  FK  |
+|  商品名   |          name          |     string      |      |
+|   情報    |      information       |      text       |      |
+|   価格    |         price          | unsignedInteger |      |
+| 販売/停止 |       is_selling       |     boolean     |      |
+|  ソート   |       sort_order       |     integer     |      |
+| カテゴリ  | secondarty_category_id |     bigint      |  FK  |
+|  画像 1   |         image1         |     bigint      |  FK  |
+|  画像 2   |         image2         |     bigint      |  FK  |
+|  画像 3   |         image3         |     bigint      |  FK  |
+|  画像 4   |         image4         |     bigint      |  FK  |
+| 作成日時  |       created_at       |    timestamp    |      |
+| 更新日時  |       updated_at       |    timestamp    |      |
+
+### Product モデル
+
+php artisan make:model Product -m<br>
+php artisan make:controller Owner/ProductController --resource<br>
+
+Shop.php・・hasMany(Proudct::class)<br>
+
+Product.php・・belongsTo(Shop::class)<br>
+Product.php・・belongsTo(Image::class)<br>
+Product.php・・belongsTo(SecondaryCategory::class)<br>
+
+### ハンズオン
+
+- `$ php artisan make:model Product -m`を実行<br>
+
+* `$ php artisan make:controller Owner/ProductController --resource`を実行<br>
+
+- `routes/owner.php`を編集<br>
+
+```php:owner.php
+<?php
+
+use App\Http\Controllers\Owner\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Owner\Auth\ConfirmablePasswordController;
+use App\Http\Controllers\Owner\Auth\EmailVerificationNotificationController;
+use App\Http\Controllers\Owner\Auth\EmailVerificationPromptController;
+use App\Http\Controllers\Owner\Auth\NewPasswordController;
+use App\Http\Controllers\Owner\Auth\PasswordResetLinkController;
+use App\Http\Controllers\Owner\Auth\RegisteredUserController;
+use App\Http\Controllers\Owner\Auth\VerifyEmailController;
+use App\Http\Controllers\Owner\ImageController;
+use App\Http\Controllers\Owner\ProductController;
+use App\Http\Controllers\Owner\ShopController;
+use Illuminate\Support\Facades\Route;
+
+Route::get('/', function () {
+  return view('owner.welcome');
+});
+
+Route::prefix('shops')
+  ->middleware('auth:owners')
+  ->group(function () {
+    Route::get('index', [ShopController::class, 'index'])->name('shops.index');
+    Route::get('edit/{shop}', [ShopController::class, 'edit'])->name(
+      'shops.edit'
+    );
+    Route::post('update/{shop}', [ShopController::class, 'update'])->name(
+      'shops.update'
+    );
+  });
+
+Route::resource('images', ImageController::class)
+  ->middleware('auth:owners')
+  ->except('show');
+
+// 追加
+Route::resource('products', ProductController::class)
+  ->middleware('auth:owners')
+  ->except('show');
+
+Route::get('/dashboard', function () {
+  return view('owner.dashboard');
+})
+  ->middleware(['auth:owners'])
+  ->name('dashboard'); // 認証しているかどうか
+
+Route::middleware('guest')->group(function () {
+  Route::get('register', [RegisteredUserController::class, 'create'])->name(
+    'register'
+  );
+
+  Route::post('register', [RegisteredUserController::class, 'store']);
+
+  Route::get('login', [AuthenticatedSessionController::class, 'create'])->name(
+    'login'
+  );
+
+  Route::post('login', [AuthenticatedSessionController::class, 'store']);
+
+  Route::get('forgot-password', [
+    PasswordResetLinkController::class,
+    'create',
+  ])->name('password.request');
+
+  Route::post('forgot-password', [
+    PasswordResetLinkController::class,
+    'store',
+  ])->name('password.email');
+
+  Route::get('reset-password/{token}', [
+    NewPasswordController::class,
+    'create',
+  ])->name('password.reset');
+
+  Route::post('reset-password', [NewPasswordController::class, 'store'])->name(
+    'password.update'
+  );
+});
+
+Route::middleware('auth:owners')->group(function () {
+  Route::get('verify-email', [
+    EmailVerificationPromptController::class,
+    '__invoke',
+  ])->name('verification.notice');
+
+  Route::get('verify-email/{id}/{hash}', [
+    VerifyEmailController::class,
+    '__invoke',
+  ])
+    ->middleware(['signed', 'throttle:6,1'])
+    ->name('verification.verify');
+
+  Route::post('email/verification-notification', [
+    EmailVerificationNotificationController::class,
+    'store',
+  ])
+    ->middleware('throttle:6,1')
+    ->name('verification.send');
+
+  Route::get('confirm-password', [
+    ConfirmablePasswordController::class,
+    'show',
+  ])->name('password.confirm');
+
+  Route::post('confirm-password', [
+    ConfirmablePasswordController::class,
+    'store',
+  ]);
+
+  Route::post('logout', [
+    AuthenticatedSessionController::class,
+    'destroy',
+  ])->name('logout');
+});
+```
+
+- `app/Models/Shop.php`を編集<br>
+
+```php:Shop.php
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use app\Models\Owner;
+use app\Models\Product;
+
+class Shop extends Model
+{
+  use HasFactory;
+
+  protected $fillable = [
+    'owner_id',
+    'name',
+    'information',
+    'filename',
+    'is_selling',
+  ];
+
+  public function owner()
+  {
+    return $this->belongsTo(Owner::class);
+  }
+
+  // 追加
+  public function products()
+  {
+    return $this->hasMany(Product::class);
+  }
+}
+```
+
+- `app/Models/Product.php`を編集<br>
+
+```php:Product.php
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use App\Models\Shop;
+
+class Product extends Model
+{
+  use HasFactory;
+
+  protected $guarded = [];
+
+  public function shop()
+  {
+    return $this->belongsTo(Shop::class);
+  }
+}
+```
