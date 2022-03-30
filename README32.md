@@ -381,3 +381,136 @@ class Product extends Model
   }
 }
 ```
+
+### 90 Product マイグレーション・シーダー
+
+### Product マイグレーション
+
+外部キー制約<br>
+親を削除するか、親を削除したときに合わせて削除するか<br>
+テーブル名(shops 複数形)とカラム名(shop_id 単数形\_id)が一致するか<br>
+Null を許容するか<br>
+
+```php:create_products_table.php
+$table->foreginId('shop_id'); // cascadeあり
+$table->foreginId('secondary_category_id); // cascadeなし
+$table->foreginId('image1')->nullable()->constrained('images');
+// null許可、カラム名と違うのでテーブル名を指定
+```
+
+- `database/migrations/create_products_table.php`を編集<br>
+
+```php:create_products_table.php
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+class CreateProductsTable extends Migration
+{
+  /**
+   * Run the migrations.
+   *
+   * @return void
+   */
+  public function up()
+  {
+    Schema::create('products', function (Blueprint $table) {
+      $table->id();
+      $table
+        ->foreignId('shop_id')
+        ->constrained()
+        ->onUpdate('cascade')
+        ->onDelete('cascade');
+      $table->foreignId('secondary_category_id')->constrained();
+      $table
+        ->foreignId('image1')
+        ->nullable()
+        ->constrained('images');
+      $table->timestamps();
+    });
+  }
+
+  /**
+   * Reverse the migrations.
+   *
+   * @return void
+   */
+  public function down()
+  {
+    Schema::dropIfExists('products');
+  }
+}
+```
+
+- `$ php artisan make:seeder ProductsTableSeeder`を実行<br>
+
+* `database/seeders/ProductsTableSeeder.php`を編集<br>
+
+```php:ProductsTableSeeder.php
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+
+class ProductsTableSeeder extends Seeder
+{
+  /**
+   * Run the database seeds.
+   *
+   * @return void
+   */
+  public function run()
+  {
+    DB::table('products')->insert([
+      [
+        'shop_id' => 1,
+        'secondary_category_id' => 1,
+        'image1' => 1,
+      ],
+      [
+        'shop_id' => 1,
+        'secondary_category_id' => 2,
+        'image1' => 2,
+      ],
+    ]);
+  }
+}
+```
+
+- `database/seeders/DatabaseSeeder.php`を編集<br>
+
+```php:DatabaseSeeder.php
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+
+class DatabaseSeeder extends Seeder
+{
+  /**
+   * Seed the application's database.
+   *
+   * @return void
+   */
+  public function run()
+  {
+    // \App\Models\User::factory(10)->create();
+    $this->call([
+      OwnersTableSeeder::class,
+      AdminsTableSeeder::class,
+      ShopsTableSeeder::class,
+      ImagesTableSeeder::class,
+      CategoriesTableSeeder::class,
+      // 追加
+      ProductsTableSeeder::class,
+    ]);
+  }
+}
+```
+
+- `php artisan migrate:fresh --seed`を実行<br>
