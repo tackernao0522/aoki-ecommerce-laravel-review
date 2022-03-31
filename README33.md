@@ -496,3 +496,200 @@ class ProductController extends Controller
     </div>
 </nav>
 ```
+
+## 92 Eager Loading
+
+### Eager(積極的) Loading
+
+https://readouble.com/laravel/9.x/ja/eloquent-relationships.html (Eager ロード)<br>
+
+N + 1 問題の対策<br>
+リレーション先のリレーション情報を取得<br>
+with メソッド、リレーションをドットで繋ぐ<br>
+
+```php:ProductController.php
+$ownerInfo = Owner::with('shop.product.imageFirst)
+  ->where('id', Auth::id())->get();
+
+  foreach ($ownerInfo as $owner) {
+      // dd($owner->shop->products);
+      foreach($owner->shop->products as $product) {
+          dd($product->imageFirst->filename);
+      }
+  }
+```
+
+### ハンズオン
+
+- `app/Http/Controllers/Owner/ProductController.php`を編集<br>
+
+```php:ProductController.php
+<?php
+
+namespace App\Http\Controllers\Owner;
+
+use App\Http\Controllers\Controller;
+use App\Models\Owner;
+use App\Models\Product;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
+class ProductController extends Controller
+{
+  public function __construct()
+  {
+    $this->middleware('auth:owners');
+
+    $this->middleware(function ($request, $next) {
+      $id = $request->route()->parameter('product'); // productのid取得
+      if (!is_null($id)) {
+        // null判定
+        $productsOwnerId = Product::findOrFail($id)->shop->owner->id;
+        $productId = (int) $productsOwnerId; // キャスト 文字列ー>数値に型変換
+        // $imageId = Auth::id();
+        if ($productId !== Auth::id()) {
+          // 同じでなかったら
+          abort(404); // 404画面表示
+        }
+      }
+
+      return $next($request);
+    });
+  }
+  /**
+   * Display a listing of the resource.
+   *
+   * @return \Illuminate\Http\Response
+   */
+  // 編集
+  public function index()
+  {
+    // $products = Owner::findOrFail(Auth::id())->shop->products;
+
+    $ownerInfo = Owner::with('shop.products.imageFirst')
+      ->where('id', Auth::id())
+      ->get();
+
+    // dd($ownerInfo);
+
+    // foreach ($ownerInfo as $owner) {
+    //     // dd($owner->shop->products);
+    //     foreach($owner->shop->products as $product) {
+    //         dd($product->imageFirst->filename);
+    //     }
+    // }
+
+    return view('owner.products.index', compact('ownerInfo'));
+  }
+
+  /**
+   * Show the form for creating a new resource.
+   *
+   * @return \Illuminate\Http\Response
+   */
+  public function create()
+  {
+    //
+  }
+
+  /**
+   * Store a newly created resource in storage.
+   *
+   * @param  \Illuminate\Http\Request  $request
+   * @return \Illuminate\Http\Response
+   */
+  public function store(Request $request)
+  {
+    //
+  }
+
+  /**
+   * Display the specified resource.
+   *
+   * @param  int  $id
+   * @return \Illuminate\Http\Response
+   */
+  public function show($id)
+  {
+    //
+  }
+
+  /**
+   * Show the form for editing the specified resource.
+   *
+   * @param  int  $id
+   * @return \Illuminate\Http\Response
+   */
+  public function edit($id)
+  {
+    //
+  }
+
+  /**
+   * Update the specified resource in storage.
+   *
+   * @param  \Illuminate\Http\Request  $request
+   * @param  int  $id
+   * @return \Illuminate\Http\Response
+   */
+  public function update(Request $request, $id)
+  {
+    //
+  }
+
+  /**
+   * Remove the specified resource from storage.
+   *
+   * @param  int  $id
+   * @return \Illuminate\Http\Response
+   */
+  public function destroy($id)
+  {
+    //
+  }
+}
+```
+
+- `resources/views/owner/proudcts/index.blade.php`を編集<br>
+
+```php:index.blade.php
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            {{ __('Dashboard') }}
+        </h2>
+    </x-slot>
+
+    <div class="py-12">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6 bg-white border-b border-gray-200">
+                    <x-flash-message status="session('status')" />
+                    <div class="flex justify-end mb-4">
+                        <button onclick="location.href='{{ route('owner.products.create') }}'"
+                            class="text-white bg-purple-500 border-0 py-2 px-8 focus:outline-none hover:bg-purple-600 rounded text-lg">新規登録する</button>
+                    </div>
+                    <div class="flex flex-wrap">
+                        // 編集
+                        @foreach ($ownerInfo as $owner)
+                            @foreach ($owner->shop->products as $product)
+                                <div class="w-1/4 p-2 md:p-4">
+                                    <a href="{{ route('owner.products.edit', $product->id) }}">
+                                        <div class="border rounded-md p-2 md:p-4">
+                                            <x-thumbnail :filename="$product->imageFirst->filename" type="products" />
+                                            <div class="text-gray-700">
+                                                {{ $product->name }}
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                            @endforeach
+                        @endforeach
+                        // ここまで
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</x-app-layout>
+```
