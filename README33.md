@@ -497,7 +497,7 @@ class ProductController extends Controller
 </nav>
 ```
 
-## 92 Eager Loading
+## 93 Eager Loading
 
 ### Eager(積極的) Loading
 
