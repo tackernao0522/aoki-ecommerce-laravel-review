@@ -829,3 +829,203 @@ Illuminate\Http\Request {#43 ▼
   format: "html"
 }
 ```
+
+## 98 Micromodal.js 補足(暫定策)
+
+### Micromodal.js 暫定対応
+
+現象:
+image1〜3 を選んだ後に image4 を選ぶと以前に選んだ image1〜3 のモーダルが開く<br>
+
+暫定対応: <br>
+image5 を作成<br>
+(Controller 側では image4 まで保存対象)<br>
+
+### ハンズオン
+
+- `resources/views/owner/products/create.blade.php`を編集<br>
+
+```php:create.blade.php
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            商品登録
+        </h2>
+    </x-slot>
+
+    <div class="py-12">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6 bg-white border-b border-gray-200">
+                    <x-auth-validation-errors class="mb-4" :errors="$errors" />
+                    <form method="post" action="{{ route('owner.products.store') }}">
+                        @csrf
+                        <div class="-m-2">
+                            <div class="p-2 w-1/2 mx-auto">
+                                <div class="relative">
+                                    <select name="category">
+                                        @foreach ($categories as $category)
+                                            <optgroup label="{{ $category->name }}">
+                                                @foreach ($category->secondary as $secondary)
+                                                    <option value="{{ $secondary->id }}"
+                                                        {{ old('category') == $secondary->id ? 'selected' : '' }}>
+                                                        {{ $secondary->name }}
+                                                    </option>
+                                                @endforeach
+                                            </optgroup>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+
+                            <x-select-image :images="$images" name="image1" />
+                            <x-select-image :images="$images" name="image2" />
+                            <x-select-image :images="$images" name="image3" />
+                            <x-select-image :images="$images" name="image4" />
+                            // 追加
+                            <x-select-image :images="$images" name="image5" />
+
+                            <div class="p-2 w-full flex justify-around mt-4">
+                                <button type="button" onclick="location.href='{{ route('owner.products.index') }}'"
+                                    class="bg-gray-200 border-0 py-2 px-8 focus:outline-none hover:bg-gray-400 rounded text-lg">戻る</button>
+                                <button type="submit"
+                                    class="text-white bg-purple-500 border-0 py-2 px-8 focus:outline-none hover:bg-purple-600 rounded text-lg">登録する</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        'use strict'
+        const images = document.querySelectorAll('.image')
+
+        images.forEach(image => {
+            image.addEventListener('click', function(e) {
+                const imageName = e.target.dataset.id.substr(0, 6)
+                const imageId = e.target.dataset.id.replace(imageName + '_', '')
+                const imageFile = e.target.dataset.file
+                const imagePath = e.target.dataset.path
+                const modal = e.target.dataset.modal
+                document.getElementById(imageName + '_thumbnail').src = imagePath + '/' + imageFile
+                document.getElementById(imageName + '_hidden').value = imageId
+                MicroModal.close(modal);
+            }, )
+        })
+    </script>
+</x-app-layout>
+```
+
+- `resources/views/components/select-image.blade.php`を編集<br>
+
+```php:select-image.blade.php
+@php
+if ($name === 'image1') {
+    $modal = 'modal-1';
+}
+if ($name === 'image2') {
+    $modal = 'modal-2';
+}
+if ($name === 'image3') {
+    $modal = 'modal-3';
+}
+if ($name === 'image4') {
+    $modal = 'modal-4';
+}
+// 追加
+if ($name === 'image5') {
+    $modal = 'modal-5';
+}
+@endphp
+
+<div class="modal micromodal-slide" id="{{ $modal }}" aria-hidden="true">
+    <div class="modal__overlay" tabindex="-1" data-micromodal-close>
+        <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="{{ $modal }}-title">
+            <header class="modal__header">
+                <h2 class="text-xl text-gray-700" id="{{ $modal }}-title">
+                    ファイルを選択してください
+                </h2>
+                <button type="button" class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+            </header>
+            <main class="modal__content" id="{{ $modal }}-content">
+                <div class="flex flex-wrap">
+                    @foreach ($images as $image)
+                        <div class="w-1/4 p-2 md:p-4">
+                            <div class="border rounded-md p-2 md:p-4">
+                                <img class="image" data-id="{{ $name }}_{{ $image->id }}"
+                                    data-file="{{ $image->filename }}" data-path="{{ asset('storage/products/') }}"
+                                    data-modal="{{ $modal }}"
+                                    src="{{ asset('storage/products/' . $image->filename) }}">
+                                <div class="text-gray-700">
+                                    {{ $image->title }}
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </main>
+            <footer class="modal__footer">
+                <button type="button" class="modal__btn" data-micromodal-close aria-label="閉じる">閉じる</button>
+            </footer>
+        </div>
+    </div>
+</div>
+
+<div class="flex justify-around items-center mb-4">
+    <a data-micromodal-trigger="{{ $modal }}" href='javascript:;'>ファイルを選択</a>
+    <div class="w-1/4">
+        <img id="{{ $name }}_thumbnail" src="">
+    </div>
+</div>
+<input id="{{ $name }}_hidden" type="hidden" name="{{ $name }}" value="">
+```
+
+```:browser
+Illuminate\Http\Request {#43 ▼
+  #json: null
+  #convertedFiles: null
+  #userResolver: Closure($guard = null) {#1372 ▶}
+  #routeResolver: Closure() {#1382 ▶}
+  +attributes: Symfony\Component\HttpFoundation\ParameterBag {#45 ▶}
+  +request: Symfony\Component\HttpFoundation\InputBag {#44 ▼
+    #parameters: array:7 [▼
+      "_token" => "JmvkF4v0UvvWNaDjejOYSNBVAM9PGhmTSphQmG1l"
+      "category" => "1"
+      "image1" => "1"
+      "image2" => "2"
+      "image3" => "3"
+      "image4" => "4"
+      "image5" => null
+    ]
+  }
+  +query: Symfony\Component\HttpFoundation\InputBag {#51 ▼
+    #parameters: []
+  }
+  +server: Symfony\Component\HttpFoundation\ServerBag {#47 ▶}
+  +files: Symfony\Component\HttpFoundation\FileBag {#48 ▶}
+  +cookies: Symfony\Component\HttpFoundation\InputBag {#46 ▶}
+  +headers: Symfony\Component\HttpFoundation\HeaderBag {#49 ▶}
+  #content: null
+  #languages: null
+  #charsets: null
+  #encodings: null
+  #acceptableContentTypes: null
+  #pathInfo: "/owner/products"
+  #requestUri: "/owner/products"
+  #baseUrl: ""
+  #basePath: null
+  #method: "POST"
+  #format: null
+  #session: Illuminate\Session\Store {#1420 ▶}
+  #locale: null
+  #defaultLocale: "en"
+  -preferredFormat: null
+  -isHostValid: true
+  -isForwardedValid: true
+  -isSafeContentPreferred: null
+  basePath: ""
+  format: "html"
+}
+```
