@@ -13,8 +13,6 @@ class Product extends Model
 {
     use HasFactory;
 
-    protected $table = 't_stocks';
-
     public function shop()
     {
         return $this->belongsTo(Shop::class);
