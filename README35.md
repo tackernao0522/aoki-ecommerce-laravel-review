@@ -834,13 +834,6 @@ Illuminate\Http\Request {#43 ▼
 
 ### Micromodal.js 暫定対応
 
-現象:
-image1〜3 を選んだ後に image4 を選ぶと以前に選んだ image1〜3 のモーダルが開く<br>
-
-暫定対応: <br>
-image5 を作成<br>
-(Controller 側では image4 まで保存対象)<br>
-
 ### ハンズオン
 
 - `resources/views/owner/products/create.blade.php`を編集<br>
@@ -882,8 +875,6 @@ image5 を作成<br>
                             <x-select-image :images="$images" name="image2" />
                             <x-select-image :images="$images" name="image3" />
                             <x-select-image :images="$images" name="image4" />
-                            // 追加
-                            <x-select-image :images="$images" name="image5" />
 
                             <div class="p-2 w-full flex justify-around mt-4">
                                 <button type="button" onclick="location.href='{{ route('owner.products.index') }}'"
@@ -900,19 +891,19 @@ image5 を作成<br>
 
     <script>
         'use strict'
-        const images = document.querySelectorAll('.image')
-
-        images.forEach(image => {
-            image.addEventListener('click', function(e) {
-                const imageName = e.target.dataset.id.substr(0, 6)
-                const imageId = e.target.dataset.id.replace(imageName + '_', '')
+        const images = document.querySelectorAll('.image') //全てのimageタグを取得
+        images.forEach(image => { // 1つずつ繰り返す
+            image.addEventListener('click', function(e) { // クリックしたら
+                const imageName = e.target.dataset.id.substr(0, 6) //data-idの6文字
+                const imageId = e.target.dataset.id.replace(imageName + '_', '') // 6文字カット
                 const imageFile = e.target.dataset.file
                 const imagePath = e.target.dataset.path
                 const modal = e.target.dataset.modal
+                // サムネイルと input type=hiddenのvalueに設定
                 document.getElementById(imageName + '_thumbnail').src = imagePath + '/' + imageFile
                 document.getElementById(imageName + '_hidden').value = imageId
-                MicroModal.close(modal);
-            }, )
+                // MicroModal.close(modal); //モーダルを閉じる  ★コメントアウト
+            })
         })
     </script>
 </x-app-layout>
@@ -934,10 +925,6 @@ if ($name === 'image3') {
 if ($name === 'image4') {
     $modal = 'modal-4';
 }
-// 追加
-if ($name === 'image5') {
-    $modal = 'modal-5';
-}
 @endphp
 
 <div class="modal micromodal-slide" id="{{ $modal }}" aria-hidden="true">
@@ -956,7 +943,8 @@ if ($name === 'image5') {
                             <div class="border rounded-md p-2 md:p-4">
                                 <img class="image" data-id="{{ $name }}_{{ $image->id }}"
                                     data-file="{{ $image->filename }}" data-path="{{ asset('storage/products/') }}"
-                                    data-modal="{{ $modal }}"
+                                    // 修正
+                                    data-micromodal-close
                                     src="{{ asset('storage/products/' . $image->filename) }}">
                                 <div class="text-gray-700">
                                     {{ $image->title }}
@@ -990,19 +978,16 @@ Illuminate\Http\Request {#43 ▼
   #routeResolver: Closure() {#1382 ▶}
   +attributes: Symfony\Component\HttpFoundation\ParameterBag {#45 ▶}
   +request: Symfony\Component\HttpFoundation\InputBag {#44 ▼
-    #parameters: array:7 [▼
+    #parameters: array:6 [▼
       "_token" => "JmvkF4v0UvvWNaDjejOYSNBVAM9PGhmTSphQmG1l"
       "category" => "1"
       "image1" => "1"
       "image2" => "2"
       "image3" => "3"
       "image4" => "4"
-      "image5" => null
     ]
   }
-  +query: Symfony\Component\HttpFoundation\InputBag {#51 ▼
-    #parameters: []
-  }
+  +query: Symfony\Component\HttpFoundation\InputBag {#51 ▶}
   +server: Symfony\Component\HttpFoundation\ServerBag {#47 ▶}
   +files: Symfony\Component\HttpFoundation\FileBag {#48 ▶}
   +cookies: Symfony\Component\HttpFoundation\InputBag {#46 ▶}
