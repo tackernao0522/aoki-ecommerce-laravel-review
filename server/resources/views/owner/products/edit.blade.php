@@ -52,17 +52,28 @@
                             <div class="p-2 w-1/2 mx-auto">
                                 <div class="relative">
                                     <label for="current_quantity" class="leading-7 text-sm text-gray-600">現在の在庫数</label>
-                                    <input type="hidden" id="current_quantity" name="current_quantity" value="{{ $quantity }}" />
-                                    <div class="w-full bg-gray-100 bg-opacity-50 rounded">{{ $quantity }}</div>
+                                    <input type="hidden" id="current_quantity" name="current_quantity"
+                                        value="{{ $quantity }}" />
+                                    <div class="w-full bg-gray-100 bg-opacity-50 rounded text-base outline-none text-gray-700 py-1 px-3 leading-8">{{ $quantity }}</div>
+                                </div>
+                            </div>
+
+                            <div class="p-2 w-1/2 mx-auto">
+                                <div class="relative flex justify-around">
+                                    <div><input type="radio" name="type" value="1" class="mr-2" checked>追加
+                                    </div>
+                                    <div><input type="radio" name="type" value="2" class="mr-2">削減
+                                    </div>
                                 </div>
                             </div>
 
                             <div class="p-2 w-1/2 mx-auto">
                                 <div class="relative">
-                                    <label for="quantity" class="leading-7 text-sm text-gray-600">初期在庫 ※必須</label>
+                                    <label for="quantity" class="leading-7 text-sm text-gray-600">数量 ※必須</label>
                                     <input type="number" id="quantity" name="quantity"
                                         class="w-full bg-gray-100 bg-opacity-50 rounded border border-gray-300 focus:border-purple-500 focus:bg-white focus:ring-2 focus:ring-purple-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
-                                        value="{{ old('quantity') }}" required />
+                                        value="0" required />
+                                    <span class="text-sm">0〜99の範囲で入力してください</span>
                                 </div>
                             </div>
 
@@ -100,17 +111,21 @@
                                 </div>
                             </div>
 
-                            <x-select-image :images="$images" name="image1" />
-                            <x-select-image :images="$images" name="image2" />
-                            <x-select-image :images="$images" name="image3" />
-                            <x-select-image :images="$images" name="image4" />
+                            <x-select-image :images="$images" currentId="{{ $product->image1 }}"
+                                currentImage="{{ $product->imageFirst->filename ?? '' }}" name="image1" />
+                            <x-select-image :images="$images" currentId="{{ $product->image2 }}"
+                                currentImage="{{ $product->imageSecond->filename ?? '' }}" name="image2" />
+                            <x-select-image :images="$images" currentId="{{ $product->image3 }}"
+                                currentImage="{{ $product->imageThird->filename ?? '' }}" name="image3" />
+                            <x-select-image :images="$images" currentId="{{ $product->image4 }}"
+                                currentImage="{{ $product->imageFourth->filename ?? '' }}" name="image4" />
 
                             <div class="p-2 w-1/2 mx-auto">
                                 <div class="relative flex justify-around">
                                     <div><input type="radio" name="is_selling" value="1" class="mr-2"
-                                            checked>販売中</div>
-                                    <div><input type="radio" name="is_selling" value="0" class="mr-2">停止中
-                                    </div>
+                                            @if ($product->is_selling === 1) { checked } @endif>販売中</div>
+                                    <div><input type="radio" name="is_selling" value="0" class="mr-2"
+                                            @if ($product->is_selling === 0) { checked } @endif>停止中</div>
                                 </div>
                             </div>
 
@@ -118,7 +133,7 @@
                                 <button type="button" onclick="location.href='{{ route('owner.products.index') }}'"
                                     class="bg-gray-200 border-0 py-2 px-8 focus:outline-none hover:bg-gray-400 rounded text-lg">戻る</button>
                                 <button type="submit"
-                                    class="text-white bg-purple-500 border-0 py-2 px-8 focus:outline-none hover:bg-purple-600 rounded text-lg">登録する</button>
+                                    class="text-white bg-purple-500 border-0 py-2 px-8 focus:outline-none hover:bg-purple-600 rounded text-lg">更新する</button>
                             </div>
                         </div>
                     </form>
