@@ -11,4 +11,10 @@ class Stock extends Model
     use HasFactory;
 
     protected $table = 't_stocks';
+
+    protected $fillable = [
+        'product_id',
+        'type',
+        'quantity'
+    ];
 }
