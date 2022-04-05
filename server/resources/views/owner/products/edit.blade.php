@@ -12,6 +12,7 @@
                     <x-auth-validation-errors class="mb-4" :errors="$errors" />
                     <form method="post" action="{{ route('owner.products.update', $product->id) }}">
                         @csrf
+                        @method('put')
                         <div class="-m-2">
                             <div class="p-2 w-1/2 mx-auto">
                                 <div class="relative">
@@ -54,7 +55,9 @@
                                     <label for="current_quantity" class="leading-7 text-sm text-gray-600">現在の在庫数</label>
                                     <input type="hidden" id="current_quantity" name="current_quantity"
                                         value="{{ $quantity }}" />
-                                    <div class="w-full bg-gray-100 bg-opacity-50 rounded text-base outline-none text-gray-700 py-1 px-3 leading-8">{{ $quantity }}</div>
+                                    <div
+                                        class="w-full bg-gray-100 bg-opacity-50 rounded text-base outline-none text-gray-700 py-1 px-3 leading-8">
+                                        {{ $quantity }}</div>
                                 </div>
                             </div>
 
