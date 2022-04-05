@@ -178,6 +178,43 @@ class ProductController extends Controller
                     'status' => 'alert'
                 ]);
         } else {
+            try {
+                DB::transaction(function () use ($request, $product) {
+                    $product->name = $request->name;
+                    $product->information = $request->information;
+                    $product->price = $request->price;
+                    $product->sort_order = $request->sort_order;
+                    $product->shop_id = $request->shop_id;
+                    $product->secondary_category_id = $request->category;
+                    $product->image1 = $request->image1;
+                    $product->image2 = $request->image2;
+                    $product->image3 = $request->image3;
+                    $product->image4 = $request->image4;
+                    $product->is_selling = $request->is_selling;
+                    $product->save();
+
+                    if ($request->type === '1') {
+                        $newQuantity = $request->quantity;
+                    } elseif ($request->type === '2') {
+                        $newQuantity = $request->quantity * -1;
+                    }
+                    Stock::create([
+                        'product_id' => $product->id,
+                        'type' => $request->type,
+                        'quantity' => $newQuantity,
+                    ]);
+                }, 2);
+            } catch (Throwable $e) {
+                Log::error($e);
+                throw $e;
+            }
+
+            return redirect()
+                ->route('owner.products.index')
+                ->with([
+                    'message' => '商品情報を更新しました。',
+                    'status' => 'info'
+                ]);
         }
     }
 
