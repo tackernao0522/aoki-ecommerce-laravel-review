@@ -1,3 +1,31 @@
+## 107 Product Destory
+
+コントローラ<br>
+`ImageController@destory` をコピーして調整<br>
+
+ビュー<br>
+`images/edit.blade.php`をコピーして調整<br>
+
+### ハンズオン
+
+- `app/Http/Controllers/Owner/ProductController.php`を編集<br>
+
+```php:ProductController.php
+    // 〜略〜
+    public function destroy($id)
+    {
+        Product::findOrFail($id)->delete();
+
+        return redirect()->route('owner.products.index')->with([
+            'message' => '商品をを削除しました。',
+            'status' => 'alert'
+        ]);
+    }
+```
+
+- `resources/views/owner/products/edit.blade.php`を編集<br>
+
+```php:edit.blade.php
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
@@ -143,6 +171,7 @@
                             </div>
                         </div>
                     </form>
+                    // 追記
                     <form id="delete_{{ $product->id }}" action="{{ route('owner.products.destroy', $product->id) }}"
                         method="POST">
                         @csrf
@@ -152,6 +181,7 @@
                                 class="text-white bg-red-400 border-0 py-2 px-4 focus:outline-none hover:bg-red-500 rounded">削除する</a>
                         </div>
                     </form>
+                    // ここまで
                 </div>
             </div>
         </div>
@@ -174,6 +204,7 @@
             })
         })
 
+        // 追加
         function deletePost(e) {
             'use strict';
             if (confirm('本当に削除してもいいですか？')) {
@@ -182,3 +213,4 @@
         }
     </script>
 </x-app-layout>
+```
