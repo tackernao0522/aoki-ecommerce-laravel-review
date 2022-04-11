@@ -1,3 +1,70 @@
+## 113 商品一覧 ビュー側の調整
+
+- `$ cp resources/views/user/dashboard.blade.php resources/views/user/index.blade.php`を実行<br>
+
+* `resources/views/user/index.blade.php`を編集<br>
+
+```php:index.blade.php
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            ホーム
+        </h2>
+    </x-slot>
+
+    <div class="py-12">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6 bg-white border-b border-gray-200">
+                    <div class="flex flex-wrap">
+                        // 編集
+                        @foreach ($products as $product)
+                            <div class="w-1/4 p-2 md:p-4">
+                                <a href="{{-- route('owner.products.edit', $product->id) --}}">
+                                    <div class="border rounded-md p-2 md:p-4">
+                                        <x-thumbnail filename="{{ $product->imageFirst->filename ?? '' }}"
+                                            type="products" />
+                                        <div class="text-gray-700">
+                                            {{ $product->name }}
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                        @endforeach
+                        // ここまで
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</x-app-layout>
+```
+
+- `app/Http/Controllers/User/ItemController.php`を編集<br>
+
+```php:ItemController.php
+<?php
+
+namespace App\Http\Controllers\User;
+
+use App\Http\Controllers\Controller;
+use App\Models\Product;
+use Illuminate\Http\Request;
+
+class ItemController extends Controller
+{
+  public function index()
+  {
+    $products = Product::all();
+
+    return view('user.index', compact('products'));
+  }
+}
+```
+
+- `resources/views/layouts/user-navigation.blade.php`を編集<br>
+
+```php:navigation.blade.php
 <nav x-data="{ open: false }" class="bg-white border-b border-gray-100">
     <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -14,6 +81,7 @@
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
+                    // 編集
                     <x-nav-link :href="route('user.items.index')" :active="request()->routeIs('user.items.index')">
                         {{ __('ホーム') }}
                     </x-nav-link>
@@ -71,6 +139,7 @@
     <!-- Responsive Navigation Menu -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
+            // 編集
             <x-responsive-nav-link :href="route('user.items.index')" :active="request()->routeIs('user.items.index')">
                 {{ __('ホーム') }}
             </x-responsive-nav-link>
@@ -97,3 +166,4 @@
         </div>
     </div>
 </nav>
+```
