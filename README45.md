@@ -1,3 +1,10 @@
+## 115 View 側の調整
+
+https://tailblocks.cc/ (ECOMMERCE)<br>
+
+- `resources/views/user/index.blade.php`を編集<br>
+
+```php:index.blade.php
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
@@ -16,6 +23,7 @@
                                     <div class="border rounded-md p-2 md:p-4">
                                         <x-thumbnail filename="{{ $product->imageFirst->filename ?? '' }}"
                                             type="products" />
+                                        // 編集
                                         <div class="mt-4">
                                             <h3 class="text-gray-500 text-xs tracking-widest title-font mb-1">
                                                 {{ $product->category->name }}
@@ -25,6 +33,7 @@
                                             <p class="mt-1">{{ number_format($product->price) }}<span
                                                     class="text-sm text-gray-700">円(税込)</span></p>
                                         </div>
+                                        // ここまで
                                     </div>
                                 </a>
                             </div>
@@ -35,3 +44,4 @@
         </div>
     </div>
 </x-app-layout>
+```
