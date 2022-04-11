@@ -45,3 +45,131 @@ https://tailblocks.cc/ (ECOMMERCE)<br>
     </div>
 </x-app-layout>
 ```
+
+## 116 商品一覧のクエリ その 1
+
+表示する条件<br>
+shop・・is_selling = true<br>
+Product・・is_selling = true<br>
+Stock の合計・・1 以上<br>
+
+### 商品一覧クエリ その 2
+
+Stock の合計をグループ化->数量が 1 以上<br>
+
+SQL の場合<br>
+
+```
+SELECT `product_id`, sum(`quantity`) as `quantity`
+FROM `t_stocks`
+GROUP BY `product_id`
+HAVING `quantity` >= 1
+```
+
+検索条件<br>
+
+Where・・groupBy より前に条件指定<br>
+Having・・groupBy の後に条件指定<br>
+
+### 商品一覧クエリ その 3
+
+select 内で`sum`を使うためクエリビルダの`DB::raw`で対応<br>
+
+```
+$stocks = DB::table('t_stocks')
+  ->select('product_id', DB::raw('sum(quantity) as quantity'))
+  ->groupBy('product_id')
+  ->having('quantity', '>=', 1);
+```
+
+### ハンズオン
+
+- `app/Http/Controllers/User/ItemController.php`を編集<br>
+
+```php:ItemController.php
+<?php
+
+namespace App\Http\Controllers\User;
+
+use App\Http\Controllers\Controller;
+use App\Models\Product;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+
+class ItemController extends Controller
+{
+  public function index()
+  {
+    $stocks = DB::table('t_stocks')
+      ->select('product_id', DB::raw('sum(quantity) as quantity'))
+      ->groupBy('product_id')
+      ->having('quantity', '>=', 1);
+
+    dd($stocks);
+
+    $products = Product::all();
+
+    return view('user.index', compact('products'));
+  }
+}
+```
+
+### 商品一覧クエリ その 4
+
+全ページの `$stocks`をサブクエリとして設定<br>
+`products`、`shops`、`stocks`を join 句で紐付けて<br>
+where 句で `is_selling`が`true`かの条件指定<br>
+
+https://readouble.com/laravel/9.x/ja/queries.html <br>
+
+```
+$products = DB::table('products')
+  ->joinSub($stocks, 'stock', function($join) {
+    $join->on('products.id', '=', 'stock.product_id');
+  })
+  ->join('shops', 'products.shop_id', '=', 'shops.id')
+  ->where('shops.is_selling', true)
+  ->where('products.is_selling', ture)
+  ->get();
+```
+
+### ハンズオン
+
+- `app/Http/Controllers/User/ItemController.php`を編集<br>
+
+```php:ItemController.php
+<?php
+
+namespace App\Http\Controllers\User;
+
+use App\Http\Controllers\Controller;
+use App\Models\Product;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+
+class ItemController extends Controller
+{
+  public function index()
+  {
+    $stocks = DB::table('t_stocks')
+      ->select('product_id', DB::raw('sum(quantity) as quantity'))
+      ->groupBy('product_id')
+      ->having('quantity', '>=', 1);
+
+    $products = DB::table('products')
+      ->joinSub($stocks, 'stock', function ($join) {
+        $join->on('products.id', '=', 'stock.product_id');
+      })
+      ->join('shops', 'products.shop_id', '=', 'shops.id')
+      ->where('shops.is_selling', true)
+      ->where('products.is_selling', true)
+      ->get();
+
+    // dd($stocks, $products);
+
+    // $products = Product::all();
+
+    return view('user.index', compact('products'));
+  }
+}
+```
