@@ -380,3 +380,184 @@ class DatabaseSeeder extends Seeder
     </div>
 </nav>
 ```
+
+## 112 商品一覧の準備
+
+ルート<br>
+
+```php:web.php
+Route::middleware('auth:users')->group(function () {
+  Route::get('/', [ItemController::class, 'index'])->name('items.index');
+});
+```
+
+コントローラ<br>
+
+`php artisan make:controller User/ItemController`<br>
+
+```php:ItemController.php
+public function index()
+{
+  return view('user.index');
+}
+```
+
+ビュー<br>
+
+`user/index.blade.php`<br>
+
+### ハンズオン
+
+- `$ php artisan make:controller User/ItemController`を実行<br>
+
+* `routes/web.php`を編集<br>
+
+```php:web.php
+<?php
+
+use App\Http\Controllers\ComponentTestController;
+use App\Http\Controllers\LifeCycleTestController;
+use App\Http\Controllers\User\ItemController;
+use Illuminate\Support\Facades\Route;
+
+Route::get('/', function () {
+  return view('user.welcome');
+});
+
+// 追加
+Route::middleware('auth:users')->group(function () {
+  Route::get('/', [ItemController::class, 'index'])->name('items.index');
+});
+
+// コメントアウト or 削除
+// Route::get('/dashboard', function () {
+//     return view('user.dashboard');
+// })->middleware(['auth:users'])->name('dashboard'); // 認証しているかどうか
+
+Route::get('/component-test1', [
+  ComponentTestController::class,
+  'showComponent1',
+]);
+Route::get('/component-test2', [
+  ComponentTestController::class,
+  'showComponent2',
+]);
+Route::get('/servicecontainertest', [
+  LifeCycleTestController::class,
+  'showServiceContainerTest',
+]);
+Route::get('/serviceprovidertest', [
+  LifeCycleTestController::class,
+  'showServiceProviderTest',
+]);
+
+require __DIR__ . '/auth.php';
+```
+
+- `app/Providers/RouteServiceProvider.php`を編集<br>
+
+```php:RouteServiceProvider.php
+<?php
+
+namespace App\Providers;
+
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Route;
+
+class RouteServiceProvider extends ServiceProvider
+{
+  /**
+   * The path to the "home" route for your application.
+   *
+   * This is used by Laravel authentication to redirect users after login.
+   *
+   * @var string
+   */
+  // 編集
+  public const HOME = '/';
+  public const OWNER_HOME = '/owner/dashboard';
+  public const ADMIN_HOME = '/admin/dashboard';
+
+  /**
+   * The controller namespace for the application.
+   *
+   * When present, controller route declarations will automatically be prefixed with this namespace.
+   *
+   * @var string|null
+   */
+  // protected $namespace = 'App\\Http\\Controllers';
+
+  /**
+   * Define your route model bindings, pattern filters, etc.
+   *
+   * @return void
+   */
+  public function boot()
+  {
+    $this->configureRateLimiting();
+
+    $this->routes(function () {
+      Route::prefix('api')
+        ->middleware('api')
+        ->namespace($this->namespace)
+        ->group(base_path('routes/api.php'));
+
+      Route::prefix('admin')
+        ->as('admin.')
+        ->middleware('web')
+        ->namespace($this->namespace)
+        ->group(base_path('routes/admin.php'));
+
+      Route::prefix('owner')
+        ->as('owner.')
+        ->middleware('web')
+        ->namespace($this->namespace)
+        ->group(base_path('routes/owner.php'));
+
+      Route::prefix('/')
+        ->as('user.')
+        ->middleware('web')
+        ->namespace($this->namespace)
+        ->group(base_path('routes/web.php'));
+    });
+  }
+
+  /**
+   * Configure the rate limiters for the application.
+   *
+   * @return void
+   */
+  protected function configureRateLimiting()
+  {
+    RateLimiter::for('api', function (Request $request) {
+      return Limit::perMinute(60)->by(
+        optional($request->user())->id ?: $request->ip()
+      );
+    });
+  }
+}
+```
+
+- `app/Http/Controllers/User/ItemController.php`を編集<br>
+
+```php:ItemController.php
+<?php
+
+namespace App\Http\Controllers\User;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+
+class ItemController extends Controller
+{
+  public function index()
+  {
+    return view('user.index');
+  }
+}
+```
+
+- `$ touch resources/views/user/index.blade.php`を実行<br>
