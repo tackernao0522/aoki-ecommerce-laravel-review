@@ -173,3 +173,130 @@ class ItemController extends Controller
   }
 }
 ```
+
+## 117 商品一覧のクエリ その 2
+
+### 商品一覧クエリ その 5
+
+Eloquent->クエリビルダに変更したため`select`で指定<br>
+
+```
+$products = DB::table('products')
+  略
+  ->join('secondary_categories', 'products.secondary_category_id', '=', 'secondary_categories.id')
+  ->join('images as image1', 'products.image1', '=', 'image1.id')
+  ->join('images as image2', 'products.image1', '=', 'image2.id')
+  ->join('images as image3', 'products.image1', '=', 'image3.id')
+  ->join('images as image4', 'products.image1', '=', 'image4.id')
+  略
+  ->select('products.id', 'products.name as name', 'products.price', 'products.sort_order as sort_order', 'products.information', 'secondary_categories.name ad category', 'image1.filename as filename')
+  ->get();
+```
+
+### ハンズオン
+
+- `app/Http/Controllers/User/ItemController.php`を編集<br>
+
+```php:ItemController.php
+<?php
+
+namespace App\Http\Controllers\User;
+
+use App\Http\Controllers\Controller;
+use App\Models\Product;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+
+class ItemController extends Controller
+{
+  public function index()
+  {
+    $stocks = DB::table('t_stocks')
+      ->select('product_id', DB::raw('sum(quantity) as quantity'))
+      ->groupBy('product_id')
+      ->having('quantity', '>=', 1);
+
+    $products = DB::table('products')
+      ->joinSub($stocks, 'stock', function ($join) {
+        $join->on('products.id', '=', 'stock.product_id');
+      })
+      ->join('shops', 'products.shop_id', '=', 'shops.id')
+      // 追記
+      ->join(
+        'secondary_categories',
+        'products.secondary_category_id',
+        '=',
+        'secondary_categories.id'
+      )
+      ->join('images as image1', 'products.image1', '=', 'image1.id')
+      ->join('images as image2', 'products.image1', '=', 'image2.id')
+      ->join('images as image3', 'products.image1', '=', 'image3.id')
+      ->join('images as image4', 'products.image1', '=', 'image4.id')
+      // ここまで
+      ->where('shops.is_selling', true)
+      ->where('products.is_selling', true)
+      // 追記
+      ->select(
+        'products.id',
+        'products.name as name',
+        'products.price',
+        'products.sort_order as sort_order',
+        'products.information',
+        'secondary_categories.name as category',
+        'image1.filename as filename'
+      )
+      // ここまで
+      ->get();
+
+    // dd($stocks, $products);
+
+    // $products = Product::all();
+
+    return view('user.index', compact('products'));
+  }
+}
+```
+
+- `resources/views/user/index.blade.php`を編集<br>
+
+```php:index.blade.php
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            ホーム
+        </h2>
+    </x-slot>
+
+    <div class="py-12">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6 bg-white border-b border-gray-200">
+                    <div class="flex flex-wrap">
+                        @foreach ($products as $product)
+                            <div class="w-1/4 p-2 md:p-4">
+                                <a href="{{-- route('owner.products.edit', $product->id) --}}">
+                                    <div class="border rounded-md p-2 md:p-4">
+                                        // 編集 {{ $product->filename　}}に変更
+                                        <x-thumbnail filename="{{ $product->filename ?? '' }}"
+                                            type="products" />
+                                        <div class="mt-4">
+                                            <h3 class="text-gray-500 text-xs tracking-widest title-font mb-1">
+                                                // 編集
+                                                {{ $product->category }}
+                                            </h3>
+                                            <h2 class="text-gray-900 title-font text-lg font-medium">
+                                                {{ $product->name }}</h2>
+                                            <p class="mt-1">{{ number_format($product->price) }}<span
+                                                    class="text-sm text-gray-700">円(税込)</span></p>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</x-app-layout>
+```
