@@ -1,3 +1,75 @@
+## 123 Shop 情報 その 1
+
+### 店舗情報 その 1
+
+shop のダミーデータに画像が含まれていないので追記<br>
+README.md にも追記<br>
+(public/sample1.jpg)を`Storage/app/public/shops`フォルダに配置してほしい)<br>
+
+### 店舗情報 その 2
+
+```php:show.blade.php
+<div class="border-t border-gray-400 my-8"></div>
+<div>この商品を販売しているショップ</div>
+<div>{{ $product->shop->name }}</div>
+<div>画像は@ifで設定
+  {{ $product->shop->filename }}
+</div>
+<div>ボタン</div>
+```
+
+### ハンズオン
+
+- `database/seeders/ShopsTableSeeder.php`を編集<br>
+
+```php:ShopsTableSeeder.php
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+
+class ShopsTableSeeder extends Seeder
+{
+  /**
+   * Run the database seeds.
+   *
+   * @return void
+   */
+  public function run()
+  {
+    DB::table('shops')->insert([
+      [
+        'owner_id' => 1,
+        'name' => 'お店の名前が入ります。',
+        'information' =>
+          'ここにお店の情報が入ります。ここにお店の情報が入ります。ここにお店の情報が入ります。',
+        // 編集
+        'filename' => 'sample1.jpg',
+        'is_selling' => true,
+      ],
+      [
+        'owner_id' => 2,
+        'name' => 'お店の名前が入ります。',
+        'information' =>
+          'ここにお店の情報が入ります。ここにお店の情報が入ります。ここにお店の情報が入ります。',
+        // 編集
+        'filename' => 'sample2.jpg',
+        'is_selling' => true,
+      ],
+    ]);
+  }
+}
+```
+
+- `public/images`フォルダの sample1.jpg と sample2.jpg ファイルを`storage/app/public/shops/フォルダにコピーする<br>
+
+* `$ php artisan migrate:fresh --seed`を実行<br>
+
+- `resources/views/user/show.blade.php`を編集<br>
+
+```php:show.blade.php
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
@@ -72,6 +144,7 @@
                             </div>
                         </div>
                     </div>
+                    // 追加
                     <div class="border-t border-gray-400 my-8"></div>
                     <div class="mb-4 text-center">この商品を販売しているショップ</div>
                     <div class="mb-4 text-center">
@@ -85,9 +158,11 @@
                         <button type="button"
                             class="text-white bg-gray-400 border-0 py-2 px-6 focus:outline-none hover:bg-gray-500 rounded">ショップの詳細を見る</button>
                     </div>
+                    // ここまで
                 </div>
             </div>
         </div>
     </div>
     <script src="{{ mix('js/swiper.js') }}"></script>
 </x-app-layout>
+```
