@@ -1,3 +1,8 @@
+## 119 商品の詳細 View 調整
+
+- `resources/views/user/show.blade.php`を編集<br>
+
+```php:show.blade.php
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
@@ -44,3 +49,4 @@
         </div>
     </div>
 </x-app-layout>
+```
