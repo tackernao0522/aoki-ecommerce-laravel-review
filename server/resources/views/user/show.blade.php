@@ -15,11 +15,22 @@
                                 <!-- Additional required wrapper -->
                                 <div class="swiper-wrapper">
                                     <!-- Slides -->
-                                    <div class="swiper-slide"><img src="{{ asset('storage/products/sample1.jpg') }}"
-                                            alt=""></div>
-                                    <div class="swiper-slide">Slide 2</div>
-                                    <div class="swiper-slide">Slide 3</div>
-                                    ...
+                                    <div class="swiper-slide">
+                                        <img src="{{ $product->imageFirst->filename !== null ? asset('storage/products/' . $product->imageFirst->filename) : '' }}"
+                                            alt="">
+                                    </div>
+                                    <div class="swiper-slide">
+                                        <img src="{{ $product->imageSecond->filename !== null ? asset('storage/products/' . $product->imageSecond->filename) : '' }}"
+                                            alt="">
+                                    </div>
+                                    <div class="swiper-slide">
+                                        <img src="{{ $product->imageThird->filename !== null ? asset('storage/products/' . $product->imageThird->filename) : '' }}"
+                                            alt="">
+                                    </div>
+                                    <div class="swiper-slide">
+                                        <img src="{{ $product->imageFourth->filename !== null ? asset('storage/products/' . $product->imageFourth->filename) : '' }}"
+                                            alt="">
+                                    </div>
                                 </div>
                                 <!-- If we need pagination -->
                                 <div class="swiper-pagination"></div>
