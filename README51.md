@@ -399,3 +399,204 @@ https://stripe.com/docs/checkout/integration-builder <br>
     }
 </script>
 ```
+
+## 138 Stripe 決済成功時の処理
+
+### Stripe 決済処理 成功時
+
+カートから商品を削除<br>
+
+ルート<br>
+
+```php:web.php
+Route::prefix('cart')
+  ->middleware('auth:users')
+  ->group(function () {
+    Route::get('success', [CartController::class, 'success'])->name(
+      'cart.success'
+    );
+  });
+```
+
+### ハンズオン
+
+- `routes/web.php`を編集<br>
+
+```php:web.php
+<?php
+
+use App\Http\Controllers\ComponentTestController;
+use App\Http\Controllers\LifeCycleTestController;
+use App\Http\Controllers\User\CartController;
+use App\Http\Controllers\User\ItemController;
+use Illuminate\Support\Facades\Route;
+
+Route::get('/', function () {
+  return view('user.welcome');
+});
+
+Route::middleware('auth:users')->group(function () {
+  Route::get('/', [ItemController::class, 'index'])->name('items.index');
+  Route::get('show/{item}', [ItemController::class, 'show'])->name(
+    'items.show'
+  );
+});
+
+Route::prefix('cart')
+  ->middleware('auth:users')
+  ->group(function () {
+    Route::get('/', [CartController::class, 'index'])->name('cart.index');
+    Route::post('add', [CartController::class, 'add'])->name('cart.add');
+    Route::post('delete/{item}', [CartController::class, 'delete'])->name(
+      'cart.delete'
+    );
+    Route::get('checkout', [CartController::class, 'checkout'])->name(
+      'cart.checkout'
+    );
+    // 追加
+    Route::get('success', [CartController::class, 'success'])->name(
+      'cart.success'
+    );
+  });
+
+// Route::get('/dashboard', function () {
+//     return view('user.dashboard');
+// })->middleware(['auth:users'])->name('dashboard'); // 認証しているかどうか
+
+Route::get('/component-test1', [
+  ComponentTestController::class,
+  'showComponent1',
+]);
+Route::get('/component-test2', [
+  ComponentTestController::class,
+  'showComponent2',
+]);
+Route::get('/servicecontainertest', [
+  LifeCycleTestController::class,
+  'showServiceContainerTest',
+]);
+Route::get('/serviceprovidertest', [
+  LifeCycleTestController::class,
+  'showServiceProviderTest',
+]);
+
+require __DIR__ . '/auth.php';
+```
+
+- `app/Http/Controllers/User/CartController.php`を編集<br>
+
+```php:CartController.php
+<?php
+
+namespace App\Http\Controllers\User;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Cart;
+use App\Models\Stock;
+use App\Models\User;
+
+class CartController extends Controller
+{
+  public function index()
+  {
+    $user = User::findOrFail(Auth::id());
+    $products = $user->products;
+    $totalPrice = 0;
+
+    foreach ($products as $product) {
+      $totalPrice += $product->price * $product->pivot->quantity;
+    }
+
+    // dd($products, $totalPrice);
+
+    return view('user.cart', compact('products', 'totalPrice'));
+  }
+
+  public function add(Request $request)
+  {
+    $itemInCart = Cart::where('user_id', Auth::id())
+      ->where('product_id', $request->product_id)
+      ->first();
+
+    if ($itemInCart) {
+      $itemInCart->quantity += $request->quantity;
+      $itemInCart->save();
+    } else {
+      Cart::create([
+        'user_id' => Auth::id(),
+        'product_id' => $request->product_id,
+        'quantity' => $request->quantity,
+      ]);
+    }
+
+    return redirect()->route('user.cart.index');
+  }
+
+  public function delete($id)
+  {
+    Cart::where('product_id', $id)
+      ->where('user_id', Auth::id())
+      ->delete();
+
+    return redirect()->route('user.cart.index');
+  }
+
+  public function checkout()
+  {
+    $user = User::findOrFail(Auth::id());
+    $products = $user->products;
+
+    $lineItems = [];
+
+    foreach ($products as $product) {
+      $quantity = '';
+      $quantity = Stock::where('product_id', $product->id)->sum('quantity');
+
+      if ($product->pivot->quantity > $quantity) {
+        return redirect()->route('user.cart.index');
+      } else {
+        $lineItem = [
+          'name' => $product->name,
+          'description' => $product->information,
+          'amount' => $product->price,
+          'currency' => 'jpy',
+          'quantity' => $product->pivot->quantity,
+        ];
+        array_push($lineItems, $lineItem);
+      }
+    }
+    // dd($lineItems);
+    foreach ($products as $product) {
+      Stock::create([
+        'product_id' => $product->id,
+        'type' => \Constant::PRODUCT_LIST['reduce'],
+        'quantity' => $product->pivot->quantity * -1,
+      ]);
+    }
+
+    \Stripe\Stripe::setApiKey(env('STRIPE_SECRET_KEY'));
+    $session = \Stripe\Checkout\Session::create([
+      'payment_method_types' => ['card'],
+      'line_items' => [$lineItems],
+      'mode' => 'payment',
+      // 編集 route('user.cart.success')に変更
+      'success_url' => route('user.cart.success'),
+      'cancel_url' => route('user.cart.index'),
+    ]);
+
+    $publicKey = env('STRIPE_PUBLIC_KEY');
+
+    return view('user.checkout', compact('session', 'publicKey'));
+  }
+
+  // 追記
+  public function success()
+  {
+    Cart::where('user_id', Auth::id())->delete();
+
+    return redirect()->route('user.items.index');
+  }
+}
+```
