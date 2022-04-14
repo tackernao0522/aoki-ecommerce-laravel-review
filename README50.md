@@ -293,3 +293,198 @@ MIX_PUSHER_APP_CLUSTER="${PUSHER_APP_CLUSTER}"
 STRIPE_PUBLIC_KEY="pk_test_51Jk36ZGcUjujaPiNljxzO6TsjfviPEBsdqoeLLR4DHbHwuPFzAMAnYbupIWqW7UuTiGzlZ1nhTsr5yeq6ZYc6awt00r5a0oGz7"
 STRIPE_SECRET_KEY="sk_test_51Jk36ZGcUjujaPiNikoJxZdv1e1xtTpHswnQGPYScnP0j7s4fwaKmYiJ5PRgPoNZxmTMxkoLKjyZyFp5IbTvDh8R008I63diwi"
 ```
+
+## 133 Stripe ライブラリ〜コントローラ その 1
+
+### Stripe の使用方法
+
+Laravel Casher (定期支払い向け)<br>
+
+Stripe が発行しているライブラリ<br>
+`composer require stripe/stripe-php`<br>
+https://github.com/stripe/stripe-php <br>
+
+### Stripe 決済処理
+
+ルーティング<br>
+
+```php:web.php
+Route::prefix('cart')
+  ->middleware('auth:users')
+  ->group(function () {
+    Route::get('checkout', [CartController::class, 'checkout'])->name(
+      'cart.checkout'
+    );
+  });
+```
+
+### Stripe 決済処理 コントローラ
+
+Stripe に渡すパラメータを設定<br>
+https://stripe.com/docs/api/checkout/sessions/create <br>
+
+```php:CartController.php
+public function checkout()
+{
+  $user = User::findOrFail(Auth::id());
+
+  $line_items = [];
+
+  foreach($user->products as $product) {
+    $line_item = [
+      'name' => $product->name,
+      'description' => $product->information,
+      'amount' => $product->price,
+      'currency' => 'jpy',
+      'quantity' => $product->pivot->quantity,
+    ];
+    array_push($line_items, $line_item);
+  }
+}
+```
+
+### ハンズオン
+
+- `$ composer require stripe/stripe-php`を実行<br>
+
+* `routes/web.php`を編集<br>
+
+```php:web.php
+<?php
+
+use App\Http\Controllers\ComponentTestController;
+use App\Http\Controllers\LifeCycleTestController;
+use App\Http\Controllers\User\CartController;
+use App\Http\Controllers\User\ItemController;
+use Illuminate\Support\Facades\Route;
+
+Route::get('/', function () {
+  return view('user.welcome');
+});
+
+Route::middleware('auth:users')->group(function () {
+  Route::get('/', [ItemController::class, 'index'])->name('items.index');
+  Route::get('show/{item}', [ItemController::class, 'show'])->name(
+    'items.show'
+  );
+});
+
+Route::prefix('cart')
+  ->middleware('auth:users')
+  ->group(function () {
+    Route::get('/', [CartController::class, 'index'])->name('cart.index');
+    Route::post('add', [CartController::class, 'add'])->name('cart.add');
+    Route::post('delete/{item}', [CartController::class, 'delete'])->name(
+      'cart.delete'
+    );
+    // 追記
+    Route::get('checkout', [CartController::class, 'checkout'])->name(
+      'cart.checkout'
+    );
+  });
+
+// Route::get('/dashboard', function () {
+//     return view('user.dashboard');
+// })->middleware(['auth:users'])->name('dashboard'); // 認証しているかどうか
+
+Route::get('/component-test1', [
+  ComponentTestController::class,
+  'showComponent1',
+]);
+Route::get('/component-test2', [
+  ComponentTestController::class,
+  'showComponent2',
+]);
+Route::get('/servicecontainertest', [
+  LifeCycleTestController::class,
+  'showServiceContainerTest',
+]);
+Route::get('/serviceprovidertest', [
+  LifeCycleTestController::class,
+  'showServiceProviderTest',
+]);
+
+require __DIR__ . '/auth.php';
+```
+
+- `app/Http/Controllers/User/CartController.php`を編集<br>
+
+```php:CartController.php
+<?php
+
+namespace App\Http\Controllers\User;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Cart;
+use App\Models\User;
+
+class CartController extends Controller
+{
+  public function index()
+  {
+    $user = User::findOrFail(Auth::id());
+    $products = $user->products;
+    $totalPrice = 0;
+
+    foreach ($products as $product) {
+      $totalPrice += $product->price * $product->pivot->quantity;
+    }
+
+    // dd($products, $totalPrice);
+
+    return view('user.cart', compact('products', 'totalPrice'));
+  }
+
+  public function add(Request $request)
+  {
+    $itemInCart = Cart::where('user_id', Auth::id())
+      ->where('product_id', $request->product_id)
+      ->first();
+
+    if ($itemInCart) {
+      $itemInCart->quantity += $request->quantity;
+      $itemInCart->save();
+    } else {
+      Cart::create([
+        'user_id' => Auth::id(),
+        'product_id' => $request->product_id,
+        'quantity' => $request->quantity,
+      ]);
+    }
+
+    return redirect()->route('user.cart.index');
+  }
+
+  public function delete($id)
+  {
+    Cart::where('product_id', $id)
+      ->where('user_id', Auth::id())
+      ->delete();
+
+    return redirect()->route('user.cart.index');
+  }
+
+  // 追記
+  public function checkout()
+  {
+    $user = User::findOrFail(Auth::id());
+    $products = $user->products;
+
+    $lineItems = [];
+
+    foreach ($products as $product) {
+      $lineItem = [
+        'name' => $product->name,
+        'description' => $product->information,
+        'amount' => $product->price,
+        'currency' => 'jpy',
+        'quantity' => $product->pivot->quantity,
+      ];
+      array_push($lineItems, $lineItem);
+    }
+    dd($lineItems);
+  }
+}
+```
