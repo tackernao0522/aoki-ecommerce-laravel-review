@@ -78,15 +78,13 @@ class CartController extends Controller
             }
         }
         // dd($lineItems);
-        foreach($products as $product) {
+        foreach ($products as $product) {
             Stock::create([
                 'product_id' => $product->id,
                 'type' => \Constant::PRODUCT_LIST['reduce'],
                 'quantity' => $product->pivot->quantity * -1,
             ]);
         }
-
-        dd('test');
 
         \Stripe\Stripe::setApiKey(env('STRIPE_SECRET_KEY'));
         $session = \Stripe\Checkout\Session::create([

@@ -351,3 +351,51 @@ class CartController extends Controller
     </div>
 </x-app-layout>
 ```
+
+### 137 Stripe Checkout・決済処理
+
+### Stripe 決済処理 ビュー 2
+
+https://stripe.com/docs/checkout/integration-builder <br>
+
+`user/checkout.blade.php`<br>
+
+```php:checkout.blade.php
+<p>決済ページへリダイレクトします。</p>
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+    const publicKey = '{{ $publicKey }}'
+    const stripe = Stripe(publicKey)
+
+    window.onload = function() {
+      stripe.redirectToCheckout({
+        sessionId: '{{ $session->id }}'
+      }).then(function (result) {
+        window.location.href = {{ route('user.cart.index') }}'
+      })
+    }
+</script>
+```
+
+### ハンズオン
+
+- `$ touch resources/views/user/checkout.blade.php`を実行<br>
+
+* `resources/views/user/checkout.blade.php`を編集<br>
+
+```php:checkout.blade.php
+<p>決済ページへリダイレクトします。</p>
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+    const publicKey = '{{ $publicKey }}'
+    const stripe = Stripe(publicKey)
+
+    window.onload = function() {
+        stripe.redirectToCheckout({
+            sessionId: '{{ $session->id }}'
+        }).then(function(result) {
+            window.location.href = '{{ route('user.cart.index') }}'
+        })
+    }
+</script>
+```
