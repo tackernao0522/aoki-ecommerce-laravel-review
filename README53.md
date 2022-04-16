@@ -250,16 +250,10 @@ $products = Product::availableItems()
                         <div>
                             // 編集
                             <span class="text-sm">表示件数</span><br>
-                            <select id="pagination" name="pagination">
-                                <option value="20" @if (\Request::get('pagination' === '20')) selected @endif>
-                                    20件
-                                </option>
-                                <option value="50" @if (\Request::get('pagination' === '50')) selected @endif>
-                                    50件
-                                </option>
-                                <option value="100" @if (\Request::get('pagination' === '100')) selected @endif>
-                                    100件
-                                </option>
+                            <select name="pagination" id="pagination">
+                                <option value="20" @if (\Request::get('pagination') === '20') selected @endif>20件</option>
+                                <option value="50" @if (\Request::get('pagination') === '50') selected @endif>50件</option>
+                                <option value="100" @if (\Request::get('pagination') === '100') selected @endif>100件</option>
                             </select>
                             // ここまで
                         </div>
@@ -311,8 +305,84 @@ $products = Product::availableItems()
         // 追加
         const paginate = document.getElementById('pagination')
         paginate.addEventListener('change', function() {
-            this.form.submit
+            this.form.submit()
         })
     </script>
 </x-app-layout>
+```
+
+## 149 pagination 一部修正
+
+### 表示件数 コントローラ
+
+`ItemController`<br>
+
+```php:ItemController.php
+$products = Product::availableItems()
+  ->sortOrder($request->sort)
+  ->paginate($request->pagination);
+
+  // 修正
+  ->paginate($request->pagination ?? '20');
+```
+
+### ハンズオン
+
+- `app/Http/Controllers/User/ItemController.php`を編集<br>
+
+```php:ItemController.php
+<?php
+
+namespace App\Http\Controllers\User;
+
+use App\Http\Controllers\Controller;
+use App\Models\Product;
+use App\Models\Stock;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
+
+class ItemController extends Controller
+{
+  public function __construct()
+  {
+    $this->middleware('auth:users');
+
+    $this->middleware(function ($request, $next) {
+      $id = $request->route()->parameter('item');
+      if (!is_null($id)) {
+        // null判定
+        $itemId = Product::availableItems()
+          ->where('products.id', $id)
+          ->exists();
+        if (!$itemId) {
+          abort(404); // 404画面表示
+        }
+      }
+
+      return $next($request);
+    });
+  }
+
+  public function index(Request $request)
+  {
+    $products = Product::availableItems()
+      ->sortOrder($request->sort)
+      // 編集
+      ->paginate($request->pagination ?? '20');
+
+    return view('user.index', compact('products'));
+  }
+
+  public function show($id)
+  {
+    $product = Product::findOrFail($id);
+    $quantity = Stock::where('product_id', $product->id)->sum('quantity');
+
+    if ($quantity > 9) {
+      $quantity = 9;
+    }
+
+    return view('user.show', compact('product', 'quantity'));
+  }
+}
 ```

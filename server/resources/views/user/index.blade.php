@@ -24,16 +24,10 @@
                         </div>
                         <div>
                             <span class="text-sm">表示件数</span><br>
-                            <select id="pagination" name="pagination">
-                                <option value="20" @if (\Request::get('pagination' === '20')) selected @endif>
-                                    20件
-                                </option>
-                                <option value="50" @if (\Request::get('pagination' === '50')) selected @endif>
-                                    50件
-                                </option>
-                                <option value="100" @if (\Request::get('pagination' === '100')) selected @endif>
-                                    100件
-                                </option>
+                            <select name="pagination" id="pagination">
+                                <option value="20" @if (\Request::get('pagination') === '20') selected @endif>20件</option>
+                                <option value="50" @if (\Request::get('pagination') === '50') selected @endif>50件</option>
+                                <option value="100" @if (\Request::get('pagination') === '100') selected @endif>100件</option>
                             </select>
                         </div>
                     </div>
@@ -80,9 +74,9 @@
         select.addEventListener('change', function() {
             this.form.submit();
         });
-        const paginate = document.getElementById('pagination')
+        const paginate = document.getElementById('pagination');
         paginate.addEventListener('change', function() {
-            this.form.submit
+            this.form.submit()
         })
     </script>
 </x-app-layout>
