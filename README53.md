@@ -1,5 +1,11 @@
+## 144 表示順 その 2
+
+- `resources/views/user/index.blade.php`を編集<br>
+
+```php:index.blade.php
 <x-app-layout>
     <x-slot name="header">
+        // 編集
         <div class="flex justify-between items-center">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
                 商品一覧
@@ -27,6 +33,7 @@
                 </form>
             </div>
         </div>
+        // ここまで
     </x-slot>
 
     <div class="py-12">
@@ -65,3 +72,4 @@
         });
     </script>
 </x-app-layout>
+```

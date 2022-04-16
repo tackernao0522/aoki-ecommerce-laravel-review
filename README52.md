@@ -298,7 +298,7 @@ const ORDER_OLDER = '4';
 
 const SORT_ORDER = [
   'recommend' => self::ORDER_RECOMMEND,
-  'higerPrice' => self::ORDER_HIGHER,
+  'higherPrice' => self::ORDER_HIGHER,
   'lowerPrice' => self::ORDER_LOWER,
   'later' => self::ORDER_LATER,
   'older' => self::ORDER_OLDER,
@@ -398,7 +398,7 @@ class Common
 
   const SORT_ORDER = [
     'recommend' => self::ORDER_RECOMMEND,
-    'higerPrice' => self::ORDER_HIGHER,
+    'higherPrice' => self::ORDER_HIGHER,
     'lowerPrice' => self::ORDER_LOWER,
     'later' => self::ORDER_LATER,
     'older' => self::ORDER_OLDER,
