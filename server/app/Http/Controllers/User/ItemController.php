@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\SendThanksMail;
 use App\Mail\TestMail;
 use App\Models\PrimaryCategory;
 use App\Models\Product;
@@ -34,7 +35,11 @@ class ItemController extends Controller
     public function index(Request $request)
     {
         // dd($request);
-        Mail::to(Auth::user()->email)->send(new TestMail());
+        // 同期的に送信
+        // Mail::to(Auth::user()->email)->send(new TestMail());
+
+        // 非同期に送信
+        SendThanksMail::dispatch();
 
         $categories = PrimaryCategory::with('secondary')->get();
 
