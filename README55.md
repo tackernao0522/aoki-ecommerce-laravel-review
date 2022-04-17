@@ -237,6 +237,19 @@ SendThanksMail::dispatch();
 裏側でキューにジョブが入っていく<br>
 (phpMyAdmin で jobs テーブルを見てみる)<br>
 
+### ワーカーの起動
+
+ワーカー(Worker 処理をする人)<br>
+
+php artisan queue:work<br>
+
+キューに入ったジョブを裏側で処理してくれる<br>
+
+ワーカープロセスが動いている必要がある・・監視しておく必要がある<br>
+
+本番環境(Linux)の場合は`suervisor`で監視設定必要<br>
+https://readouble.com/laravel/8.x/ja/queues.html (キューワーカの実行)<br>
+
 ### ハンズオン
 
 - `.env`を編集<br>
@@ -334,6 +347,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 
 class SendThanksMail implements ShouldQueue
@@ -358,7 +372,7 @@ class SendThanksMail implements ShouldQueue
   public function handle()
   {
     // 編集
-    Mail::to($this->user)->send(new TestMail());
+    Mail::to('takaki55730317@gmail.com')->send(new TestMail());
   }
 }
 ```
@@ -436,4 +450,17 @@ class ItemController extends Controller
     return view('user.show', compact('product', 'quantity'));
   }
 }
+```
+
+## 154 非同期処理 その 2
+
+- `localhost:3000`にアクセスする<br>
+
+* `jobs`テーブルに保存される<br>
+
+- `$ php artisan queue:work`を実行(メール送信が実行される)<br>
+
+```
+2022-04-17 18:02:13][1] Processing: App\Jobs\SendThanksMail
+[2022-04-17 18:02:15][1] Processed:  App\Jobs\SendThanksMail
 ```
