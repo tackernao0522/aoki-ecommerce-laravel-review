@@ -3,10 +3,13 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Mail\TestMail;
 use App\Models\PrimaryCategory;
 use App\Models\Product;
 use App\Models\Stock;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 class ItemController extends Controller
@@ -31,6 +34,8 @@ class ItemController extends Controller
     public function index(Request $request)
     {
         // dd($request);
+        Mail::to(Auth::user()->email)->send(new TestMail());
+
         $categories = PrimaryCategory::with('secondary')->get();
 
         $products = Product::availableItems()
