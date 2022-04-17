@@ -311,7 +311,7 @@ $products = Product::availableItems()
 </x-app-layout>
 ```
 
-## 149 pagination 一部修正
+## 146 pagination 一部修正
 
 ### 表示件数 コントローラ
 

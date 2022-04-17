@@ -7,12 +7,12 @@
             <div class="lg:flex lg:justify-around">
                 <div class="lg:flex items-center">
                     <select name="category" class="mb-2 lg:mb-0 lg:mr-2">
-                        <option value="0">全て</option>
+                        <option value="0" @if (\Request::get('category') === '0') selected @endif>全て</option>
                         @foreach ($categories as $category)
                             <optgroup label="{{ $category->name }}">
                                 @foreach ($category->secondary as $secondary)
                                     <option value="{{ $secondary->id }}"
-                                        {{ old('category') == $secondary->id ? 'selected' : '' }}>
+                                        @if (\Request::get('category') == $secondary->id) selected @endif>
                                         {{ $secondary->name }}
                                     </option>
                                 @endforeach
