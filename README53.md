@@ -386,3 +386,110 @@ class ItemController extends Controller
   }
 }
 ```
+
+## 147 検索フォーム ビュー側調整
+
+### 検索フォーム
+
+カテゴリ + キーワード<br>
+以前作成した表示順・表示件数もまとめて get パラメータで受け渡す<br>
+
+```php:index.blade.php
+<form action="get">
+    カテゴリー
+    キーワード
+    検索ボタン
+    表示順
+    表示件数
+</form>
+```
+
+### 検索フォーム ビュー側
+
+```php:index.blade.php
+<h2></h2>
+<form>
+    <div class="lg:flex lg:justify-around">
+        <div class="lg:flex items-center">
+            <select>カテゴリー</select>
+            <div class="flex">
+                <div><input placeholder="キーワードを入力"></div>
+                <div><button>検索する</button></div>
+            </div>
+        </div>
+        <div>
+          略 (表示順・表示件数)
+        </div>
+    </div>
+</form>
+```
+
+### ハンズオン
+
+- `resources/views/user/index.blade.php`を編集<br>
+
+```php:index.blade.php
+```
+
+- `app/Http/Controllers/User/ItemController.php`を編集<br>
+
+```php:ItemController.php
+<?php
+
+namespace App\Http\Controllers\User;
+
+use App\Http\Controllers\Controller;
+use App\Models\PrimaryCategory;
+use App\Models\Product;
+use App\Models\Stock;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
+
+class ItemController extends Controller
+{
+  public function __construct()
+  {
+    $this->middleware('auth:users');
+
+    $this->middleware(function ($request, $next) {
+      $id = $request->route()->parameter('item');
+      if (!is_null($id)) {
+        // null判定
+        $itemId = Product::availableItems()
+          ->where('products.id', $id)
+          ->exists();
+        if (!$itemId) {
+          abort(404); // 404画面表示
+        }
+      }
+
+      return $next($request);
+    });
+  }
+
+  public function index(Request $request)
+  {
+    // 追記
+    // dd($request);
+    $categories = PrimaryCategory::with('secondary')->get();
+
+    $products = Product::availableItems()
+      ->sortOrder($request->sort)
+      ->paginate($request->pagination ?? '20');
+
+    return view('user.index', compact('products', 'categories'));
+  }
+
+  public function show($id)
+  {
+    $product = Product::findOrFail($id);
+    $quantity = Stock::where('product_id', $product->id)->sum('quantity');
+
+    if ($quantity > 9) {
+      $quantity = 9;
+    }
+
+    return view('user.show', compact('product', 'quantity'));
+  }
+}
+```
