@@ -39,7 +39,7 @@ class ItemController extends Controller
         // Mail::to(Auth::user()->email)->send(new TestMail());
 
         // 非同期に送信
-        SendThanksMail::dispatch();
+        // SendThanksMail::dispatch();
 
         $categories = PrimaryCategory::with('secondary')->get();
 
