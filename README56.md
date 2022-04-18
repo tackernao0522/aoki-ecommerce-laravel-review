@@ -45,7 +45,7 @@ foreach ($items as $item) { // カート内の商品を一つずつ処理
   $keys = ['ownerName', 'email'];
   $ownerInfo = array_combine($keys, $values); // オーナー情報のキーを変更
   $product = Product::where('id', $item->product_id)
-      ->select('id', 'name', 'price')->get()->toArray(); // 商品情報の入れる
+      ->select('id', 'name', 'price')->get()->toArray(); // 商品情報の入れる toArrayは配列に変換する
   $quantity = Cart::where('product_id', $item->product_id)
       ->select('quantity')->get()->toArray(); // 在庫数の配列
   $result = array_merge($product[0], $ownerInfo, $quantity[0]); // 配列の結合
@@ -86,7 +86,7 @@ class CartService
     $products = [];
 
     dd($items);
-    foreach ($tiems as $item) {
+    foreach ($items as $item) {
       // カート内の商品を一つずつ処理
     }
 
@@ -230,6 +230,55 @@ class CartController extends Controller
     }
 
     return redirect()->route('user.cart.index');
+  }
+}
+```
+
+## 156 カート情報から新しく配列をつくる
+
+- `app/Services/CartService.php`を編集<br>
+
+```php:CartService.php
+<?php
+
+namespace App\Services;
+
+use App\Models\Cart;
+use App\Models\Product;
+
+class CartService
+{
+  public static function getItemsInCart($items)
+  {
+    $products = [];
+
+    // dd($items);
+    foreach ($items as $item) {
+      // カート内の商品を一つずつ処理
+      $p = Product::findOrFail($item->product_id);
+      $owner = $p->shop->owner
+        ->select('name', 'email')
+        ->first()
+        ->toArray();
+      $values = array_values($owner);
+      $keys = ['ownerName', 'email'];
+      $ownerInfo = array_combine($keys, $values);
+      // dd($ownerInfo);
+      $product = Product::where('id', $item->product_id)
+        ->select('id', 'name', 'price')
+        ->get()
+        ->toArray();
+      $quantity = Cart::where('product_id', $item->product_id)
+        ->select('quantity')
+        ->get()
+        ->toArray();
+      // dd($ownerInfo, $product, $quantity);
+      $result = array_merge($product[0], $ownerInfo, $quantity[0]);
+      // dd($result);
+      array_push($products, $result);
+    }
+    // dd($products);
+    return $products;
   }
 }
 ```
